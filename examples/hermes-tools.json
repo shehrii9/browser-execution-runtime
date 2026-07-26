@@ -1,0 +1,71 @@
+{
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_attach",
+        "description": "Attach the browser execution runtime to Chrome/Chromium.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "startUrl": { "type": "string" },
+            "cdpUrl": { "type": "string" },
+            "headless": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_run_plan",
+        "description": "Execute a deterministic browser action plan through the runtime. Prefer this over computer-use.",
+        "parameters": {
+          "type": "object",
+          "required": ["plan"],
+          "properties": {
+            "plan": {
+              "type": "object",
+              "required": ["goal", "steps"],
+              "properties": {
+                "goal": { "type": "string" },
+                "steps": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["action"],
+                    "properties": {
+                      "id": { "type": "string" },
+                      "optional": { "type": "boolean" },
+                      "action": { "type": "object" },
+                      "expect": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_observe",
+        "description": "Get compact semantic browser state/diff instead of screenshots.",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    }
+  ],
+  "endpoints": {
+    "attach": "POST http://127.0.0.1:8787/attach",
+    "run": "POST http://127.0.0.1:8787/run",
+    "execute": "POST http://127.0.0.1:8787/execute",
+    "observe": "GET http://127.0.0.1:8787/observe",
+    "diff": "GET http://127.0.0.1:8787/diff",
+    "status": "GET http://127.0.0.1:8787/status"
+  }
+}

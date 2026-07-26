@@ -1,0 +1,33 @@
+{
+  "goal": "Open example.com and extract the main heading",
+  "steps": [
+    {
+      "id": "go",
+      "action": {
+        "type": "navigate",
+        "url": "https://example.com"
+      },
+      "expect": {
+        "urlIncludes": "example.com"
+      }
+    },
+    {
+      "id": "dismiss",
+      "action": {
+        "type": "dismiss_overlays"
+      },
+      "optional": true
+    },
+    {
+      "id": "extract-heading",
+      "action": {
+        "type": "extract",
+        "target": {
+          "role": "heading",
+          "name": "Example Domain"
+        },
+        "key": "heading"
+      }
+    }
+  ]
+}
