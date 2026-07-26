@@ -15,6 +15,11 @@ export {
   HermesComputerUseFallback,
   createHermesPlannerFromEnv,
 } from "./planner/hermes.js";
+export {
+  VisionComputerUseFallback,
+  CascadingComputerUseFallback,
+  createComputerUseFallbackFromEnv,
+} from "./fallback/computerUse.js";
 export { HermesRuntimeClient } from "./hermes/client.js";
 export { HermesToolBridge, createDefaultBridge } from "./hermes/bridge.js";
 export { HERMES_TOOLS } from "./hermes/tools.js";

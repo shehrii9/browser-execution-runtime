@@ -1,9 +1,10 @@
 import { resolve } from "node:path";
+import { createComputerUseFallbackFromEnv } from "./fallback/computerUse.js";
 import {
   HermesComputerUseFallback,
   createHermesPlannerFromEnv,
 } from "./planner/hermes.js";
-import { BuiltinPlanner } from "./planner/engine.js";
+import { BuiltinPlanner, NoopComputerUseFallback } from "./planner/engine.js";
 import { BrowserRuntime, type RuntimeOptions } from "./runtime.js";
 
 export function createRuntimeFromEnv(
@@ -11,9 +12,12 @@ export function createRuntimeFromEnv(
 ): BrowserRuntime {
   const hermes = createHermesPlannerFromEnv();
   const planner = overrides.planner ?? hermes ?? new BuiltinPlanner();
+
+  const envFallback = createComputerUseFallbackFromEnv();
   const computerUseFallback =
     overrides.computerUseFallback ??
-    (hermes ? new HermesComputerUseFallback(hermes) : undefined);
+    envFallback ??
+    (hermes ? new HermesComputerUseFallback(hermes) : new NoopComputerUseFallback());
 
   return new BrowserRuntime({
     dataDir: overrides.dataDir ?? resolve(process.env.BER_DATA_DIR ?? "data"),

@@ -12,7 +12,10 @@ export function classifyProblem(error: string, state?: SemanticState): ProblemKi
   if (state?.signals.includes("cookie_banner") || /cookie|consent/.test(msg)) {
     return "cookie_banner";
   }
-  if (state?.dialogs.length || /dialog|overlay|intercepts pointer/i.test(msg)) {
+  if (
+    state?.dialogs.length ||
+    /dialog|overlay|intercepts pointer|pointer-events/i.test(msg)
+  ) {
     return "dialog_blocking";
   }
   if (/timeout|waiting for|not found|unable to find/i.test(msg)) {

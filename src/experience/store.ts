@@ -10,6 +10,17 @@ export interface RememberInput {
   problem: string;
   fix: Action[];
   success?: boolean;
+  pageHint?: string;
+  signals?: string[];
+}
+
+export interface FindBestInput {
+  site: string;
+  stateHash: string;
+  problem: string;
+  minConfidence: number;
+  pageHint?: string;
+  signals?: string[];
 }
 
 export class ExperienceStore {
@@ -31,11 +42,33 @@ export class ExperienceStore {
         failure INTEGER NOT NULL DEFAULT 0,
         confidence REAL NOT NULL DEFAULT 1.0,
         last_used TEXT,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        page_hint TEXT NOT NULL DEFAULT '',
+        signals_json TEXT NOT NULL DEFAULT '[]',
+        times_used INTEGER NOT NULL DEFAULT 0
       );
       CREATE INDEX IF NOT EXISTS idx_exp_lookup
         ON experiences(site, state_hash, problem);
+      CREATE INDEX IF NOT EXISTS idx_exp_site_problem
+        ON experiences(site, problem);
     `);
+    this.migrate();
+  }
+
+  private migrate(): void {
+    const cols = this.db.prepare(`PRAGMA table_info(experiences)`).all() as Array<{
+      name: string;
+    }>;
+    const names = new Set(cols.map((c) => c.name));
+    if (!names.has("page_hint")) {
+      this.db.exec(`ALTER TABLE experiences ADD COLUMN page_hint TEXT NOT NULL DEFAULT ''`);
+    }
+    if (!names.has("signals_json")) {
+      this.db.exec(`ALTER TABLE experiences ADD COLUMN signals_json TEXT NOT NULL DEFAULT '[]'`);
+    }
+    if (!names.has("times_used")) {
+      this.db.exec(`ALTER TABLE experiences ADD COLUMN times_used INTEGER NOT NULL DEFAULT 0`);
+    }
   }
 
   count(): number {
@@ -54,6 +87,9 @@ export class ExperienceStore {
       )
       .get(input.site, input.stateHash, input.problem) as DbRow | undefined;
 
+    const pageHint = input.pageHint ?? "";
+    const signalsJson = JSON.stringify(input.signals ?? []);
+
     if (existing) {
       const success = existing.success + (input.success === false ? 0 : 1);
       const failure = existing.failure + (input.success === false ? 1 : 0);
@@ -61,7 +97,8 @@ export class ExperienceStore {
       this.db
         .prepare(
           `UPDATE experiences
-           SET fix_json = ?, success = ?, failure = ?, confidence = ?, last_used = ?
+           SET fix_json = ?, success = ?, failure = ?, confidence = ?, last_used = ?,
+               page_hint = ?, signals_json = ?, times_used = times_used + 1
            WHERE id = ?`,
         )
         .run(
@@ -70,6 +107,8 @@ export class ExperienceStore {
           failure,
           confidence,
           new Date().toISOString(),
+          pageHint || existing.page_hint,
+          signalsJson === "[]" ? existing.signals_json : signalsJson,
           existing.id,
         );
       return this.get(existing.id)!;
@@ -79,8 +118,8 @@ export class ExperienceStore {
     const result = this.db
       .prepare(
         `INSERT INTO experiences
-         (site, goal, state_hash, problem, fix_json, success, failure, confidence, last_used, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (site, goal, state_hash, problem, fix_json, success, failure, confidence, last_used, created_at, page_hint, signals_json, times_used)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         input.site,
@@ -93,18 +132,16 @@ export class ExperienceStore {
         input.success === false ? 0 : 1,
         createdAt,
         createdAt,
+        pageHint,
+        signalsJson,
+        input.success === false ? 0 : 1,
       );
 
     return this.get(Number(result.lastInsertRowid))!;
   }
 
-  findBest(input: {
-    site: string;
-    stateHash: string;
-    problem: string;
-    minConfidence: number;
-  }): ExperienceRecord | null {
-    const row = this.db
+  findBest(input: FindBestInput): ExperienceRecord | null {
+    const exact = this.db
       .prepare(
         `SELECT * FROM experiences
          WHERE site = ?
@@ -117,22 +154,34 @@ export class ExperienceStore {
       .get(input.site, input.stateHash, input.problem, input.minConfidence) as
       | DbRow
       | undefined;
+    if (exact) return mapRow(exact);
 
-    if (row) return mapRow(row);
-
-    // Fallback: same site + problem, ignore exact state hash.
-    const soft = this.db
+    const candidates = this.db
       .prepare(
         `SELECT * FROM experiences
          WHERE site = ?
            AND problem = ?
            AND confidence >= ?
          ORDER BY confidence DESC, success DESC, id DESC
-         LIMIT 1`,
+         LIMIT 25`,
       )
-      .get(input.site, input.problem, input.minConfidence) as DbRow | undefined;
+      .all(input.site, input.problem, input.minConfidence) as DbRow[];
 
-    return soft ? mapRow(soft) : null;
+    if (candidates.length === 0) {
+      // Cross-site generic skills for common problems.
+      const generic = this.db
+        .prepare(
+          `SELECT * FROM experiences
+           WHERE problem = ?
+             AND confidence >= ?
+           ORDER BY confidence DESC, times_used DESC, id DESC
+           LIMIT 25`,
+        )
+        .all(input.problem, input.minConfidence) as DbRow[];
+      return pickBest(generic, input);
+    }
+
+    return pickBest(candidates, input);
   }
 
   markResult(id: number, success: boolean): void {
@@ -144,7 +193,8 @@ export class ExperienceStore {
     this.db
       .prepare(
         `UPDATE experiences
-         SET success = ?, failure = ?, confidence = ?, last_used = ?
+         SET success = ?, failure = ?, confidence = ?, last_used = ?,
+             times_used = times_used + 1
          WHERE id = ?`,
       )
       .run(nextSuccess, nextFailure, confidence, new Date().toISOString(), id);
@@ -152,9 +202,7 @@ export class ExperienceStore {
 
   list(limit = 50): ExperienceRecord[] {
     const rows = this.db
-      .prepare(
-        `SELECT * FROM experiences ORDER BY id DESC LIMIT ?`,
-      )
+      .prepare(`SELECT * FROM experiences ORDER BY id DESC LIMIT ?`)
       .all(limit) as DbRow[];
     return rows.map(mapRow);
   }
@@ -183,6 +231,9 @@ interface DbRow {
   confidence: number;
   last_used: string | null;
   created_at: string;
+  page_hint: string;
+  signals_json: string;
+  times_used: number;
 }
 
 function mapRow(row: DbRow): ExperienceRecord {
@@ -198,5 +249,41 @@ function mapRow(row: DbRow): ExperienceRecord {
     confidence: row.confidence,
     lastUsed: row.last_used,
     createdAt: row.created_at,
+    pageHint: row.page_hint || undefined,
+    signals: safeJsonArray(row.signals_json),
+    timesUsed: row.times_used ?? 0,
   };
+}
+
+function safeJsonArray(raw: string): string[] {
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function pickBest(rows: DbRow[], input: FindBestInput): ExperienceRecord | null {
+  if (rows.length === 0) return null;
+  let best: { row: DbRow; score: number } | null = null;
+  for (const row of rows) {
+    const signals = safeJsonArray(row.signals_json);
+    const overlap = jaccard(input.signals ?? [], signals);
+    const pageBonus = input.pageHint && row.page_hint === input.pageHint ? 0.15 : 0;
+    const score = row.confidence * 0.55 + overlap * 0.3 + pageBonus + Math.min(0.1, row.times_used * 0.01);
+    if (!best || score > best.score) best = { row, score };
+  }
+  if (!best || best.score < input.minConfidence * 0.7) return null;
+  return mapRow(best.row);
+}
+
+function jaccard(a: string[], b: string[]): number {
+  if (a.length === 0 && b.length === 0) return 0.5;
+  const aSet = new Set(a);
+  const bSet = new Set(b);
+  let inter = 0;
+  for (const v of aSet) if (bSet.has(v)) inter += 1;
+  const union = new Set([...aSet, ...bSet]).size || 1;
+  return inter / union;
 }

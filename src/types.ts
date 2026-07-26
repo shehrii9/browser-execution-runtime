@@ -154,6 +154,9 @@ export interface ExperienceRecord {
   confidence: number;
   lastUsed: string | null;
   createdAt: string;
+  pageHint?: string;
+  signals?: string[];
+  timesUsed?: number;
 }
 
 export interface StepResult {

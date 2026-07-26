@@ -58,6 +58,8 @@ export interface ComputerUseFallback {
     intent: string;
     error: string;
     stateSummary: string[];
+    screenshotPath?: string;
+    url?: string;
   }): Promise<Plan | null>;
 }
 

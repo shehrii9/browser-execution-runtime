@@ -47,13 +47,15 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the He
 | Failure screenshots | Done |
 | Resume failed run | Done |
 | Computer-use fallback hook | Done (noop by default) |
-| Vector similarity (L3) | Not yet |
+| Vector similarity (L3) | Partial (signal soft-match scoring; no embeddings yet) |
 | Site plugins | Not yet |
 | Event bus | Not yet |
 | Chrome extension bridge | Not yet (intentionally later) |
 | Rust core / Python SDK | Not yet (intentionally later) |
 | Full Hermes LLM planner adapter | Done (OpenAI-compatible via `BER_HERMES_API_BASE`) |
 | Hermes tool bridge/client | Done (`hermes-call`, `HERMES_TOOLS`) |
+| Computer-use fallback (vision+text) | Done (`VisionComputerUseFallback` cascade) |
+| Experience replay benchmark | Done (`npm run bench:replay`) |
 
 ---
 

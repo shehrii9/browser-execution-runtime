@@ -201,19 +201,23 @@ export class PlanRunner {
       stateHash: input.state.fingerprint,
       problem,
       minConfidence: this.policy.experienceAutoApplyMinConfidence,
+      pageHint: input.state.pageHint,
+      signals: input.state.signals,
     });
 
-    const candidateFixes: Action[][] = [];
+    const candidateFixes: Array<{ fix: Action[]; experienceId?: number }> = [];
     if (remembered) {
-      candidateFixes.push(remembered.fix);
+      candidateFixes.push({ fix: remembered.fix, experienceId: remembered.id });
     }
-    candidateFixes.push(...heuristicFixes(problem));
+    for (const fix of heuristicFixes(problem)) {
+      candidateFixes.push({ fix });
+    }
 
     const max = Math.min(this.policy.maxRecoveries, candidateFixes.length);
     for (let i = 0; i < max; i++) {
-      const fix = candidateFixes[i]!;
+      const candidate = candidateFixes[i]!;
       let fixOk = true;
-      for (const action of fix) {
+      for (const action of candidate.fix) {
         const applied = await input.executor.execute(action);
         if (!applied.ok) {
           fixOk = false;
@@ -221,14 +225,20 @@ export class PlanRunner {
         }
       }
       if (!fixOk) {
-        if (remembered && i === 0) this.experiences.markResult(remembered.id, false);
+        if (candidate.experienceId) {
+          this.experiences.markResult(candidate.experienceId, false);
+        }
         continue;
       }
 
-      if (remembered && i === 0) {
-        this.experiences.markResult(remembered.id, true);
+      if (candidate.experienceId) {
+        this.experiences.markResult(candidate.experienceId, true);
         llmCallsAvoided += 1;
-        return { recovered: true, llmCallsAvoided, experienceId: remembered.id };
+        return {
+          recovered: true,
+          llmCallsAvoided,
+          experienceId: candidate.experienceId,
+        };
       }
 
       const saved = this.experiences.remember({
@@ -236,8 +246,10 @@ export class PlanRunner {
         goal: input.goal,
         stateHash: input.state.fingerprint,
         problem,
-        fix,
+        fix: candidate.fix,
         success: true,
+        pageHint: input.state.pageHint,
+        signals: input.state.signals,
       });
       llmCallsAvoided += 1;
       return { recovered: true, llmCallsAvoided, experienceId: saved.id };

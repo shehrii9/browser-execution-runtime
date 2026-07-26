@@ -17,7 +17,8 @@ Chrome / Chromium
 - Attach/launch Chromium through Playwright/CDP
 - Explicit JSON **action plans** (transport format only)
 - Built-in intents: `open <url>`, `search <query> on <site>`
-- Injectable planner boundary for Hermes
+- Injectable planner boundary + OpenAI-compatible Hermes planner
+- Hermes tool bridge (`browser_attach/execute/observe/...`)
 - Semantic page state (buttons/inputs/dialogs/signals)
 - State diffs for cheap model context
 - Recovery heuristics (cookie/modals/timeouts)
@@ -25,7 +26,8 @@ Chrome / Chromium
 - L1 in-memory session cache + L2 SQLite experiences
 - Resume failed runs + failure screenshots
 - Telemetry counters (steps/recoveries/experience hits)
-- Computer-use fallback hook (noop unless you inject one)
+- Computer-use fallback cascade (vision screenshot → text Hermes planner)
+- Experience soft-match replay + `npm run bench:replay`
 - Local HTTP daemon for Hermes tool calls
 - Safety policy (domain allowlist, purchase blocking)
 
@@ -131,8 +133,9 @@ Supported actions: `navigate`, `click`, `type`, `select`, `wait`, `scroll`, `ext
 src/
   runtime.ts          # public runtime facade
   api/server.ts       # local daemon
+  hermes/             # tool schemas, HTTP client, bridge
   browser/session.ts  # chrome attach/launch
-  planner/            # intent -> plan boundary
+  planner/            # builtin + Hermes LLM planner
   memory/             # L1 session cache
   state/              # observe/diff/fingerprint
   selectors/          # a11y/text targeting
@@ -156,10 +159,17 @@ src/
 | `BER_HERMES_MODEL` | Model name (default `hermes`) |
 | `BER_URL` | Daemon URL for `hermes-call` |
 
+## Benchmark (Phase 2)
+
+```bash
+npm run bench:replay
+```
+
+Runs a cookie-banner checkout fixture twice and estimates LLM-call savings vs a naive computer-use loop.
+
 ## Roadmap
 
-- Richer experience similarity (embeddings)
+- Embedding/vector similarity (true L3)
 - Multi-tab workflows
 - Optional debug extension (attach only)
-- Benchmarks vs computer-use token usage
 - Wire your live Hermes agent config to these tools

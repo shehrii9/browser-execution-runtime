@@ -114,6 +114,8 @@ export class HermesComputerUseFallback implements ComputerUseFallback {
     intent: string;
     error: string;
     stateSummary: string[];
+    screenshotPath?: string;
+    url?: string;
   }): Promise<Plan | null> {
     const prompt = [
       `The browser runtime failed while pursuing: ${input.intent}`,

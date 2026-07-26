@@ -118,6 +118,8 @@ export class BrowserRuntime {
               ...result.finalState.signals,
             ]
           : [],
+        screenshotPath: result.screenshotPath,
+        url: result.finalState?.url,
       });
       if (fixPlan) {
         const fixResult = await runner.run(fixPlan, {
@@ -133,6 +135,8 @@ export class BrowserRuntime {
               problem: "computer_use_fallback",
               fix: fixResult.steps.map((s) => s.action),
               success: true,
+              pageHint: result.finalState?.pageHint,
+              signals: result.finalState?.signals,
             });
           }
           result = await runner.run(plan, {

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cookie Shop Checkout</title>
+    <style>
+      body { font-family: sans-serif; margin: 2rem; }
+      #overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,.55);
+        display: flex; align-items: center; justify-content: center; z-index: 10;
+      }
+      #overlay .panel {
+        background: white; padding: 1.5rem; border-radius: 8px; width: 320px;
+      }
+      #done { display: none; color: green; font-weight: 700; margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Cookie Shop</h1>
+    <p>Cart: 1 item</p>
+    <button id="checkout">Checkout</button>
+    <div id="done">Done</div>
+
+    <div id="overlay">
+      <div class="panel" role="dialog" aria-label="cookie">
+        <p>We use cookies</p>
+        <button id="accept">Accept all</button>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("accept").onclick = () => {
+        document.getElementById("overlay").remove();
+      };
+      document.getElementById("checkout").onclick = () => {
+        if (document.getElementById("overlay")) return;
+        document.getElementById("done").style.display = "block";
+      };
+    </script>
+  </body>
+</html>
