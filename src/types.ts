@@ -176,6 +176,14 @@ export interface RunResult {
   finalState?: SemanticState;
   llmCallsAvoided: number;
   error?: string;
+  resumeFromStep?: number;
+  screenshotPath?: string;
+  metrics?: {
+    durationMs?: number;
+    recoveries: number;
+    experienceHits: number;
+    steps: number;
+  };
 }
 
 export interface RuntimeStatus {
@@ -184,4 +192,10 @@ export interface RuntimeStatus {
   title?: string;
   policy: Policy;
   experienceCount: number;
+  memory: {
+    l1SessionCached: boolean;
+    l2ExperienceCount: number;
+    l3VectorIndex: "not_implemented";
+    engine: "typescript+sqlite";
+  };
 }

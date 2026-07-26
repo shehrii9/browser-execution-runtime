@@ -15,14 +15,21 @@ Chrome / Chromium
 ## Features (v0.1)
 
 - Attach/launch Chromium through Playwright/CDP
-- Explicit JSON **action plans**
+- Explicit JSON **action plans** (transport format only)
 - Built-in intents: `open <url>`, `search <query> on <site>`
+- Injectable planner boundary for Hermes
 - Semantic page state (buttons/inputs/dialogs/signals)
 - State diffs for cheap model context
 - Recovery heuristics (cookie/modals/timeouts)
-- SQLite **experience memory** (problem → fix + confidence)
+- **SQLite experience memory** (not Rust; not “save everything as JSON”)
+- L1 in-memory session cache + L2 SQLite experiences
+- Resume failed runs + failure screenshots
+- Telemetry counters (steps/recoveries/experience hits)
+- Computer-use fallback hook (noop unless you inject one)
 - Local HTTP daemon for Hermes tool calls
 - Safety policy (domain allowlist, purchase blocking)
+
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the decided-vs-shipped matrix and how this relates to the ChatGPT mega-plan.
 
 ## Quick start
 
@@ -86,6 +93,14 @@ See `examples/hermes-tools.json` for tool schemas.
 
 Supported actions: `navigate`, `click`, `type`, `select`, `wait`, `scroll`, `extract`, `press`, `dismiss_overlays`, `observe`.
 
+## Memory (important)
+
+- **Not Rust**
+- **Not a JSON dump of everything**
+- L1: RAM session cache
+- L2: `data/experiences.db` (SQLite). Only the fix steps are stored as a JSON column.
+- L3: vector similarity — planned, not implemented
+
 ## Design principles
 
 1. LLM plans rarely; runtime acts often
@@ -100,11 +115,14 @@ src/
   runtime.ts          # public runtime facade
   api/server.ts       # local daemon
   browser/session.ts  # chrome attach/launch
+  planner/            # intent -> plan boundary
+  memory/             # L1 session cache
   state/              # observe/diff/fingerprint
   selectors/          # a11y/text targeting
-  executor/           # actions + plan runner
+  executor/           # actions + plan runner/scheduler
   recovery/           # problem classification + heuristics
-  experience/         # sqlite memory
+  experience/         # L2 sqlite memory
+  telemetry/          # run metrics
 ```
 
 ## Env

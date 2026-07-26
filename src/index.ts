@@ -3,6 +3,13 @@ export type { RuntimeOptions } from "./runtime.js";
 export { startDaemon } from "./api/server.js";
 export { createPolicy } from "./policy.js";
 export { ExperienceStore } from "./experience/store.js";
+export { SessionMemory } from "./memory/hierarchy.js";
+export {
+  BuiltinPlanner,
+  NoopComputerUseFallback,
+} from "./planner/engine.js";
+export type { Planner, ComputerUseFallback } from "./planner/engine.js";
+export { MetricsCollector } from "./telemetry/metrics.js";
 export { diffStates } from "./state/diff.js";
 export { observePage } from "./state/observe.js";
 export {

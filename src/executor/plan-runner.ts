@@ -1,8 +1,11 @@
+import { mkdirSync } from "node:fs";
+import { join } from "node:path";
 import type { Page } from "playwright";
 import { ExperienceStore } from "../experience/store.js";
 import { classifyProblem, heuristicFixes } from "../recovery/engine.js";
 import { diffStates } from "../state/diff.js";
 import { observePage } from "../state/observe.js";
+import { MetricsCollector } from "../telemetry/metrics.js";
 import type {
   Action,
   Plan,
@@ -14,6 +17,12 @@ import type {
 import { ActionExecutor } from "./actions.js";
 import { SelectorEngine } from "../selectors/engine.js";
 
+export interface PlanRunnerOptions {
+  resumeFromStep?: number;
+  screenshotDir?: string;
+  metrics?: MetricsCollector;
+}
+
 export class PlanRunner {
   constructor(
     private readonly page: Page,
@@ -21,18 +30,22 @@ export class PlanRunner {
     private readonly experiences: ExperienceStore,
   ) {}
 
-  async run(plan: Plan): Promise<RunResult> {
+  async run(plan: Plan, options: PlanRunnerOptions = {}): Promise<RunResult> {
     const executor = new ActionExecutor(this.page, this.policy);
     const selectors = new SelectorEngine(this.page);
+    const metrics = options.metrics ?? new MetricsCollector();
+    metrics.start();
+
     const steps: StepResult[] = [];
     let previousState: SemanticState | undefined;
     let llmCallsAvoided = 0;
     let currentState = await observePage(this.page);
     previousState = currentState;
 
+    const startIndex = Math.max(0, options.resumeFromStep ?? 0);
     const limitedSteps = plan.steps.slice(0, this.policy.maxSteps);
 
-    for (let index = 0; index < limitedSteps.length; index++) {
+    for (let index = startIndex; index < limitedSteps.length; index++) {
       const step = limitedSteps[index]!;
       let result = await executor.execute(step.action);
       let recovered = false;
@@ -46,6 +59,7 @@ export class PlanRunner {
           state: currentState,
         });
         llmCallsAvoided += recovery.llmCallsAvoided;
+        metrics.addLlmCallsAvoided(recovery.llmCallsAvoided);
         recovered = recovery.recovered;
         experienceApplied = recovery.experienceId;
 
@@ -81,10 +95,22 @@ export class PlanRunner {
         diff,
       });
 
+      metrics.recordStep({
+        ok: result.ok,
+        recovered,
+        experienceApplied,
+      });
       previousState = currentState;
 
       if (!result.ok) {
         if (step.optional) continue;
+        const screenshotPath = await this.captureFailureScreenshot(
+          options.screenshotDir,
+          plan.goal,
+          index,
+        );
+        if (screenshotPath) metrics.addScreenshot(screenshotPath);
+        const finished = metrics.finish();
         return {
           ok: false,
           goal: plan.goal,
@@ -92,17 +118,52 @@ export class PlanRunner {
           finalState: currentState,
           llmCallsAvoided,
           error: result.error,
+          resumeFromStep: index,
+          screenshotPath,
+          metrics: {
+            durationMs: finished.durationMs,
+            recoveries: finished.recoveries,
+            experienceHits: finished.experienceHits,
+            steps: finished.steps,
+          },
         };
       }
     }
 
+    const finished = metrics.finish();
     return {
       ok: true,
       goal: plan.goal,
       steps,
       finalState: currentState,
       llmCallsAvoided,
+      metrics: {
+        durationMs: finished.durationMs,
+        recoveries: finished.recoveries,
+        experienceHits: finished.experienceHits,
+        steps: finished.steps,
+      },
     };
+  }
+
+  private async captureFailureScreenshot(
+    screenshotDir: string | undefined,
+    goal: string,
+    stepIndex: number,
+  ): Promise<string | undefined> {
+    if (!screenshotDir) return undefined;
+    try {
+      mkdirSync(screenshotDir, { recursive: true });
+      const safe = goal.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40) || "run";
+      const path = join(
+        screenshotDir,
+        `${Date.now()}-${safe}-step${stepIndex}.png`,
+      );
+      await this.page.screenshot({ path, fullPage: true });
+      return path;
+    } catch {
+      return undefined;
+    }
   }
 
   private async checkExpect(
@@ -112,7 +173,11 @@ export class PlanRunner {
   ): Promise<boolean> {
     if (expect.urlIncludes && !state.url.includes(expect.urlIncludes)) return false;
     if (expect.text) {
-      const visible = await this.page.getByText(expect.text).first().isVisible().catch(() => false);
+      const visible = await this.page
+        .getByText(expect.text)
+        .first()
+        .isVisible()
+        .catch(() => false);
       if (!visible) return false;
     }
     if (expect.target) {
@@ -160,7 +225,6 @@ export class PlanRunner {
         continue;
       }
 
-      // Recovery considered successful if we could apply the fix sequence.
       if (remembered && i === 0) {
         this.experiences.markResult(remembered.id, true);
         llmCallsAvoided += 1;

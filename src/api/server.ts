@@ -49,6 +49,10 @@ export function startDaemon(options: DaemonOptions): Server {
         return sendJson(res, 200, { experiences: runtime.listExperiences() });
       }
 
+      if (method === "GET" && path === "/metrics") {
+        return sendJson(res, 200, runtime.metricsSnapshot());
+      }
+
       if (method === "POST" && path === "/attach") {
         const body = AttachBodySchema.parse(await readJson(req));
         const state = await runtime.attach(body);
@@ -63,9 +67,19 @@ export function startDaemon(options: DaemonOptions): Server {
 
       if (method === "POST" && path === "/run") {
         const body = z
-          .object({ plan: PlanSchema })
+          .object({
+            plan: PlanSchema,
+            resumeFromStep: z.number().int().nonnegative().optional(),
+          })
           .parse(await readJson(req));
-        const result = await runtime.run(body.plan);
+        const result = await runtime.run(body.plan, {
+          resumeFromStep: body.resumeFromStep,
+        });
+        return sendJson(res, 200, result);
+      }
+
+      if (method === "POST" && path === "/resume") {
+        const result = await runtime.resume();
         return sendJson(res, 200, result);
       }
 
