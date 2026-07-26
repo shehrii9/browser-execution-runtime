@@ -31,7 +31,7 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the He
 
 | Decision | Status |
 |---|---|
-| Hermes motor, not full agent OS | Done (positioning + scope) |
+| Hermes motor, not full agent OS | Done → generalized to any-agent open wrapper |
 | TypeScript MVP first | Done |
 | CDP launch/attach | Done |
 | Explicit plan execution | Done |
@@ -39,7 +39,7 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the He
 | Selector engine (role/text/a11y) | Done |
 | Recovery heuristics | Done |
 | Experience memory with confidence | Done (SQLite) |
-| Daemon API for Hermes | Done |
+| Daemon API for Hermes | Done → generic agent daemon (Hermes optional) |
 | Safety policy | Done |
 | Planner boundary (plan once / execute many) | Done (builtin + injectable) |
 | L1 session memory | Done |
@@ -53,10 +53,11 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the He
 | Event bus | Not yet |
 | Chrome extension bridge | Not yet (intentionally later) |
 | Rust core / Python SDK | Not yet (intentionally later) |
-| Full Hermes LLM planner adapter | Done (OpenAI-compatible via `BER_HERMES_API_BASE`) |
-| Hermes tool bridge/client | Done (`hermes-call`, `HERMES_TOOLS`) |
+| Full Hermes LLM planner adapter | Done as generic `LlmPlanner` (OpenAI-compatible, key optional) |
+| Hermes tool bridge/client | Done as generic `ToolBridge` / `AGENT_TOOLS` |
 | Computer-use fallback (vision+text) | Done (`VisionComputerUseFallback` cascade) |
 | Experience replay benchmark | Done (`npm run bench:replay`) |
+| Provider-agnostic / no required API key | Done |
 
 ---
 
