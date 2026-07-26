@@ -9,14 +9,25 @@ export interface ActionExecutionResult {
   error?: string;
 }
 
-export class ActionExecutor {
-  private readonly selectors: SelectorEngine;
+export interface TabController {
+  getPage(): Page;
+  newTab(url?: string): Promise<unknown>;
+  switchTab(index: number): Promise<unknown>;
+  closeTab(index?: number): Promise<unknown>;
+}
 
+export class ActionExecutor {
   constructor(
-    private readonly page: Page,
+    private readonly tabs: TabController,
     private readonly policy: Policy,
-  ) {
-    this.selectors = new SelectorEngine(page);
+  ) {}
+
+  private get page(): Page {
+    return this.tabs.getPage();
+  }
+
+  private get selectors(): SelectorEngine {
+    return new SelectorEngine(this.page);
   }
 
   async execute(action: Action): Promise<ActionExecutionResult> {
@@ -107,6 +118,18 @@ export class ActionExecutor {
           return { ok: true };
         }
         case "observe": {
+          return { ok: true };
+        }
+        case "new_tab": {
+          await this.tabs.newTab(action.url);
+          return { ok: true };
+        }
+        case "switch_tab": {
+          await this.tabs.switchTab(action.index);
+          return { ok: true };
+        }
+        case "close_tab": {
+          await this.tabs.closeTab(action.index);
           return { ok: true };
         }
         default: {

@@ -4,7 +4,7 @@ import type { SemanticState } from "../types.js";
  * Memory hierarchy (as decided):
  * L1 — RAM session cache (this class)
  * L2 — SQLite experience store (ExperienceStore)
- * L3 — vector similarity (not implemented yet; exact/soft hash match is used)
+ * L3 — local hashing embeddings + cosine similarity (ExperienceStore)
  */
 export class SessionMemory {
   private state?: SemanticState;

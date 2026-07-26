@@ -1,6 +1,12 @@
 import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import {
+  bufferToVector,
+  cosineSimilarity,
+  embedExperience,
+  vectorToBuffer,
+} from "../memory/embeddings.js";
 import type { Action, ExperienceRecord } from "../types.js";
 
 export interface RememberInput {
@@ -21,6 +27,7 @@ export interface FindBestInput {
   minConfidence: number;
   pageHint?: string;
   signals?: string[];
+  goal?: string;
 }
 
 export class ExperienceStore {
@@ -45,7 +52,8 @@ export class ExperienceStore {
         created_at TEXT NOT NULL,
         page_hint TEXT NOT NULL DEFAULT '',
         signals_json TEXT NOT NULL DEFAULT '[]',
-        times_used INTEGER NOT NULL DEFAULT 0
+        times_used INTEGER NOT NULL DEFAULT 0,
+        embedding BLOB
       );
       CREATE INDEX IF NOT EXISTS idx_exp_lookup
         ON experiences(site, state_hash, problem);
@@ -69,12 +77,22 @@ export class ExperienceStore {
     if (!names.has("times_used")) {
       this.db.exec(`ALTER TABLE experiences ADD COLUMN times_used INTEGER NOT NULL DEFAULT 0`);
     }
+    if (!names.has("embedding")) {
+      this.db.exec(`ALTER TABLE experiences ADD COLUMN embedding BLOB`);
+    }
   }
 
   count(): number {
     const row = this.db.prepare("SELECT COUNT(*) AS c FROM experiences").get() as {
       c: number;
     };
+    return row.c;
+  }
+
+  vectorCount(): number {
+    const row = this.db
+      .prepare(`SELECT COUNT(*) AS c FROM experiences WHERE embedding IS NOT NULL`)
+      .get() as { c: number };
     return row.c;
   }
 
@@ -88,7 +106,17 @@ export class ExperienceStore {
       .get(input.site, input.stateHash, input.problem) as DbRow | undefined;
 
     const pageHint = input.pageHint ?? "";
-    const signalsJson = JSON.stringify(input.signals ?? []);
+    const signals = input.signals ?? [];
+    const signalsJson = JSON.stringify(signals);
+    const embedding = vectorToBuffer(
+      embedExperience({
+        site: input.site,
+        problem: input.problem,
+        pageHint,
+        signals,
+        goal: input.goal,
+      }),
+    );
 
     if (existing) {
       const success = existing.success + (input.success === false ? 0 : 1);
@@ -98,7 +126,8 @@ export class ExperienceStore {
         .prepare(
           `UPDATE experiences
            SET fix_json = ?, success = ?, failure = ?, confidence = ?, last_used = ?,
-               page_hint = ?, signals_json = ?, times_used = times_used + 1
+               page_hint = ?, signals_json = ?, times_used = times_used + 1,
+               embedding = ?
            WHERE id = ?`,
         )
         .run(
@@ -109,6 +138,7 @@ export class ExperienceStore {
           new Date().toISOString(),
           pageHint || existing.page_hint,
           signalsJson === "[]" ? existing.signals_json : signalsJson,
+          embedding,
           existing.id,
         );
       return this.get(existing.id)!;
@@ -118,8 +148,8 @@ export class ExperienceStore {
     const result = this.db
       .prepare(
         `INSERT INTO experiences
-         (site, goal, state_hash, problem, fix_json, success, failure, confidence, last_used, created_at, page_hint, signals_json, times_used)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (site, goal, state_hash, problem, fix_json, success, failure, confidence, last_used, created_at, page_hint, signals_json, times_used, embedding)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         input.site,
@@ -135,6 +165,7 @@ export class ExperienceStore {
         pageHint,
         signalsJson,
         input.success === false ? 0 : 1,
+        embedding,
       );
 
     return this.get(Number(result.lastInsertRowid))!;
@@ -156,32 +187,24 @@ export class ExperienceStore {
       | undefined;
     if (exact) return mapRow(exact);
 
+    const queryVec = embedExperience({
+      site: input.site,
+      problem: input.problem,
+      pageHint: input.pageHint,
+      signals: input.signals,
+      goal: input.goal,
+    });
+
     const candidates = this.db
       .prepare(
         `SELECT * FROM experiences
-         WHERE site = ?
-           AND problem = ?
-           AND confidence >= ?
-         ORDER BY confidence DESC, success DESC, id DESC
-         LIMIT 25`,
+         WHERE confidence >= ?
+         ORDER BY id DESC
+         LIMIT 100`,
       )
-      .all(input.site, input.problem, input.minConfidence) as DbRow[];
+      .all(input.minConfidence) as DbRow[];
 
-    if (candidates.length === 0) {
-      // Cross-site generic skills for common problems.
-      const generic = this.db
-        .prepare(
-          `SELECT * FROM experiences
-           WHERE problem = ?
-             AND confidence >= ?
-           ORDER BY confidence DESC, times_used DESC, id DESC
-           LIMIT 25`,
-        )
-        .all(input.problem, input.minConfidence) as DbRow[];
-      return pickBest(generic, input);
-    }
-
-    return pickBest(candidates, input);
+    return pickBest(candidates, input, queryVec);
   }
 
   markResult(id: number, success: boolean): void {
@@ -234,6 +257,7 @@ interface DbRow {
   page_hint: string;
   signals_json: string;
   times_used: number;
+  embedding: Buffer | null;
 }
 
 function mapRow(row: DbRow): ExperienceRecord {
@@ -264,17 +288,39 @@ function safeJsonArray(raw: string): string[] {
   }
 }
 
-function pickBest(rows: DbRow[], input: FindBestInput): ExperienceRecord | null {
+function pickBest(
+  rows: DbRow[],
+  input: FindBestInput,
+  queryVec: Float32Array,
+): ExperienceRecord | null {
   if (rows.length === 0) return null;
   let best: { row: DbRow; score: number } | null = null;
+
   for (const row of rows) {
     const signals = safeJsonArray(row.signals_json);
     const overlap = jaccard(input.signals ?? [], signals);
-    const pageBonus = input.pageHint && row.page_hint === input.pageHint ? 0.15 : 0;
-    const score = row.confidence * 0.55 + overlap * 0.3 + pageBonus + Math.min(0.1, row.times_used * 0.01);
+    const pageBonus = input.pageHint && row.page_hint === input.pageHint ? 0.12 : 0;
+    const sameSite = row.site === input.site ? 0.12 : 0;
+    const sameProblem = row.problem === input.problem ? 0.18 : 0;
+
+    let vectorScore = 0;
+    if (row.embedding) {
+      vectorScore = cosineSimilarity(queryVec, bufferToVector(row.embedding));
+    }
+
+    const score =
+      row.confidence * 0.35 +
+      vectorScore * 0.28 +
+      overlap * 0.15 +
+      sameProblem +
+      sameSite +
+      pageBonus +
+      Math.min(0.08, (row.times_used ?? 0) * 0.01);
+
     if (!best || score > best.score) best = { row, score };
   }
-  if (!best || best.score < input.minConfidence * 0.7) return null;
+
+  if (!best || best.score < Math.max(0.45, input.minConfidence * 0.65)) return null;
   return mapRow(best.row);
 }
 

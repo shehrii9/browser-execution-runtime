@@ -47,8 +47,9 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the He
 | Failure screenshots | Done |
 | Resume failed run | Done |
 | Computer-use fallback hook | Done (noop by default) |
-| Vector similarity (L3) | Partial (signal soft-match scoring; no embeddings yet) |
-| Site plugins | Not yet |
+| Vector similarity (L3) | Done (local hashing embeddings + cosine in SQLite) |
+| Site plugins | Done (registry + cookie-consent plugin) |
+| Multi-tab | Done (new/switch/close tab actions + API) |
 | Event bus | Not yet |
 | Chrome extension bridge | Not yet (intentionally later) |
 | Rust core / Python SDK | Not yet (intentionally later) |

@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import type { Page } from "playwright";
 import { ExperienceStore } from "../experience/store.js";
+import { PluginRegistry } from "../plugins/registry.js";
 import { classifyProblem, heuristicFixes } from "../recovery/engine.js";
 import { diffStates } from "../state/diff.js";
 import { observePage } from "../state/observe.js";
@@ -14,7 +14,7 @@ import type {
   SemanticState,
   StepResult,
 } from "../types.js";
-import { ActionExecutor } from "./actions.js";
+import { ActionExecutor, type TabController } from "./actions.js";
 import { SelectorEngine } from "../selectors/engine.js";
 
 export interface PlanRunnerOptions {
@@ -25,21 +25,21 @@ export interface PlanRunnerOptions {
 
 export class PlanRunner {
   constructor(
-    private readonly page: Page,
+    private readonly tabs: TabController,
     private readonly policy: Policy,
     private readonly experiences: ExperienceStore,
+    private readonly plugins: PluginRegistry = new PluginRegistry(),
   ) {}
 
   async run(plan: Plan, options: PlanRunnerOptions = {}): Promise<RunResult> {
-    const executor = new ActionExecutor(this.page, this.policy);
-    const selectors = new SelectorEngine(this.page);
+    const executor = new ActionExecutor(this.tabs, this.policy);
     const metrics = options.metrics ?? new MetricsCollector();
     metrics.start();
 
     const steps: StepResult[] = [];
     let previousState: SemanticState | undefined;
     let llmCallsAvoided = 0;
-    let currentState = await observePage(this.page);
+    let currentState = await observePage(this.tabs.getPage());
     previousState = currentState;
 
     const startIndex = Math.max(0, options.resumeFromStep ?? 0);
@@ -47,6 +47,7 @@ export class PlanRunner {
 
     for (let index = startIndex; index < limitedSteps.length; index++) {
       const step = limitedSteps[index]!;
+      const selectors = new SelectorEngine(this.tabs.getPage());
       let result = await executor.execute(step.action);
       let recovered = false;
       let experienceApplied: number | undefined;
@@ -68,11 +69,15 @@ export class PlanRunner {
         }
       }
 
-      currentState = await observePage(this.page);
+      currentState = await observePage(this.tabs.getPage());
       const diff = diffStates(previousState, currentState);
 
       if (result.ok && step.expect) {
-        const expectOk = await this.checkExpect(step.expect, selectors, currentState);
+        const expectOk = await this.checkExpect(
+          step.expect,
+          selectors,
+          currentState,
+        );
         if (!expectOk) {
           result = {
             ok: false,
@@ -159,7 +164,7 @@ export class PlanRunner {
         screenshotDir,
         `${Date.now()}-${safe}-step${stepIndex}.png`,
       );
-      await this.page.screenshot({ path, fullPage: true });
+      await this.tabs.getPage().screenshot({ path, fullPage: true });
       return path;
     } catch {
       return undefined;
@@ -173,7 +178,8 @@ export class PlanRunner {
   ): Promise<boolean> {
     if (expect.urlIncludes && !state.url.includes(expect.urlIncludes)) return false;
     if (expect.text) {
-      const visible = await this.page
+      const visible = await this.tabs
+        .getPage()
         .getByText(expect.text)
         .first()
         .isVisible()
@@ -203,11 +209,15 @@ export class PlanRunner {
       minConfidence: this.policy.experienceAutoApplyMinConfidence,
       pageHint: input.state.pageHint,
       signals: input.state.signals,
+      goal: input.goal,
     });
 
     const candidateFixes: Array<{ fix: Action[]; experienceId?: number }> = [];
     if (remembered) {
       candidateFixes.push({ fix: remembered.fix, experienceId: remembered.id });
+    }
+    for (const fix of this.plugins.recoveryFixes(problem, input.state)) {
+      candidateFixes.push({ fix });
     }
     for (const fix of heuristicFixes(problem)) {
       candidateFixes.push({ fix });

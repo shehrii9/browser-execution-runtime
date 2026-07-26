@@ -5,6 +5,9 @@ export { startDaemon } from "./api/server.js";
 export { createPolicy } from "./policy.js";
 export { ExperienceStore } from "./experience/store.js";
 export { SessionMemory } from "./memory/hierarchy.js";
+export { embedExperience, cosineSimilarity } from "./memory/embeddings.js";
+export { PluginRegistry } from "./plugins/registry.js";
+export { cookieConsentPlugin } from "./plugins/cookieConsent.js";
 export {
   BuiltinPlanner,
   NoopComputerUseFallback,

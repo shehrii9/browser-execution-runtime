@@ -86,6 +86,14 @@ export const HERMES_TOOLS = [
       parameters: { type: "object", properties: {} },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "browser_tabs",
+      description: "List open browser tabs managed by the runtime.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
 ] as const;
 
 export type HermesToolName =

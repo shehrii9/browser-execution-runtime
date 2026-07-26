@@ -62,6 +62,18 @@ export const ActionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("observe"),
   }),
+  z.object({
+    type: z.literal("new_tab"),
+    url: z.string().url().optional(),
+  }),
+  z.object({
+    type: z.literal("switch_tab"),
+    index: z.number().int().nonnegative(),
+  }),
+  z.object({
+    type: z.literal("close_tab"),
+    index: z.number().int().nonnegative().optional(),
+  }),
 ]);
 
 export type Action = z.infer<typeof ActionSchema>;
@@ -198,7 +210,10 @@ export interface RuntimeStatus {
   memory: {
     l1SessionCached: boolean;
     l2ExperienceCount: number;
-    l3VectorIndex: "not_implemented";
+    l3VectorIndex: "local_hashing_embeddings";
+    l3VectorCount: number;
     engine: "typescript+sqlite";
   };
+  tabs?: Array<{ index: number; url: string; title: string; active: boolean }>;
+  plugins?: string[];
 }

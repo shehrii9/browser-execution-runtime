@@ -34,7 +34,15 @@ export function startDaemon(options: DaemonOptions): Server {
       }
 
       if (method === "GET" && path === "/status") {
-        return sendJson(res, 200, runtime.status());
+        return sendJson(res, 200, await runtime.status());
+      }
+
+      if (method === "GET" && path === "/tabs") {
+        return sendJson(res, 200, { tabs: await runtime.listTabs() });
+      }
+
+      if (method === "GET" && path === "/plugins") {
+        return sendJson(res, 200, { plugins: runtime.listPlugins() });
       }
 
       if (method === "GET" && path === "/observe") {
@@ -73,6 +81,26 @@ export function startDaemon(options: DaemonOptions): Server {
         const body = z.object({ action: ActionSchema }).parse(await readJson(req));
         const result = await runtime.act(body.action);
         return sendJson(res, 200, result);
+      }
+
+      if (method === "POST" && path === "/tabs/new") {
+        const body = z.object({ url: z.string().url().optional() }).parse(await readJson(req));
+        const tab = await runtime.newTab(body.url);
+        return sendJson(res, 200, { tab, tabs: await runtime.listTabs() });
+      }
+
+      if (method === "POST" && path === "/tabs/switch") {
+        const body = z.object({ index: z.number().int().nonnegative() }).parse(await readJson(req));
+        const tab = await runtime.switchTab(body.index);
+        return sendJson(res, 200, { tab, tabs: await runtime.listTabs() });
+      }
+
+      if (method === "POST" && path === "/tabs/close") {
+        const body = z
+          .object({ index: z.number().int().nonnegative().optional() })
+          .parse(await readJson(req));
+        const tabs = await runtime.closeTab(body.index);
+        return sendJson(res, 200, { tabs });
       }
 
       if (method === "POST" && path === "/run") {

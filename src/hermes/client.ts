@@ -38,6 +38,14 @@ export class HermesRuntimeClient {
     return this.get("/metrics");
   }
 
+  tabs(): Promise<unknown> {
+    return this.get("/tabs");
+  }
+
+  plugins(): Promise<unknown> {
+    return this.get("/plugins");
+  }
+
   attach(body: {
     startUrl?: string;
     cdpUrl?: string;

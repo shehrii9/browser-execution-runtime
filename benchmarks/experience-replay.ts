@@ -85,7 +85,7 @@ async function main(): Promise<void> {
             100
           ).toFixed(1),
         ),
-        experiencesStored: runtime.status().experienceCount,
+        experiencesStored: (await runtime.status()).experienceCount,
       },
     };
 

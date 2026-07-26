@@ -56,6 +56,8 @@ export class HermesToolBridge {
         return this.client.resume();
       case "browser_status":
         return this.client.status();
+      case "browser_tabs":
+        return this.client.tabs();
       default:
         throw new Error(`Unknown Hermes browser tool: ${call.name}`);
     }

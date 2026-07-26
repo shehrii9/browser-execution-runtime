@@ -1,0 +1,15 @@
+{
+  "goal": "Open example.com in two tabs and switch between them",
+  "steps": [
+    { "action": { "type": "navigate", "url": "https://example.com" } },
+    { "action": { "type": "new_tab", "url": "https://example.org" } },
+    { "action": { "type": "switch_tab", "index": 0 } },
+    {
+      "action": {
+        "type": "extract",
+        "target": { "role": "heading", "name": "Example Domain" },
+        "key": "heading"
+      }
+    }
+  ]
+}

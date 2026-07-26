@@ -4,6 +4,7 @@ import { ExperienceStore } from "./experience/store.js";
 import { PlanRunner } from "./executor/plan-runner.js";
 import { ActionExecutor } from "./executor/actions.js";
 import { SessionMemory } from "./memory/hierarchy.js";
+import { PluginRegistry } from "./plugins/registry.js";
 import {
   BuiltinPlanner,
   NoopComputerUseFallback,
@@ -30,6 +31,7 @@ export interface RuntimeOptions {
   policy?: Partial<Policy>;
   planner?: Planner;
   computerUseFallback?: ComputerUseFallback;
+  plugins?: PluginRegistry;
 }
 
 export class BrowserRuntime {
@@ -40,6 +42,7 @@ export class BrowserRuntime {
   private readonly metrics = new MetricsCollector();
   private readonly planner: Planner;
   private readonly computerUseFallback: ComputerUseFallback;
+  private readonly plugins: PluginRegistry;
   private readonly dataDir: string;
   private lastPlan?: Plan;
   private lastResult?: RunResult;
@@ -48,11 +51,11 @@ export class BrowserRuntime {
     this.policy = createPolicy(options.policy ?? {});
     this.session = new BrowserSession(this.policy);
     this.dataDir = resolve(options.dataDir ?? "data");
-    // L2 memory: SQLite experience DB (NOT Rust, NOT a giant JSON dump)
     this.experiences = new ExperienceStore(resolve(this.dataDir, "experiences.db"));
     this.planner = options.planner ?? new BuiltinPlanner();
     this.computerUseFallback =
       options.computerUseFallback ?? new NoopComputerUseFallback();
+    this.plugins = options.plugins ?? new PluginRegistry();
   }
 
   async attach(options: AttachOptions = {}): Promise<SemanticState> {
@@ -77,11 +80,37 @@ export class BrowserRuntime {
 
   async act(action: Action) {
     this.ensureAttached();
-    const executor = new ActionExecutor(this.session.getPage(), this.policy);
+    const executor = new ActionExecutor(this.session, this.policy);
     const result = await executor.execute(action);
     this.sessionMemory.pushAction(action.type);
     const state = await this.observe();
     return { ...result, state };
+  }
+
+  async listTabs() {
+    this.ensureAttached();
+    return this.session.listTabs();
+  }
+
+  async newTab(url?: string) {
+    this.ensureAttached();
+    const tab = await this.session.newTab(url);
+    await this.observe();
+    return tab;
+  }
+
+  async switchTab(index: number) {
+    this.ensureAttached();
+    const tab = await this.session.switchTab(index);
+    await this.observe();
+    return tab;
+  }
+
+  async closeTab(index?: number) {
+    this.ensureAttached();
+    const tabs = await this.session.closeTab(index);
+    await this.observe();
+    return tabs;
   }
 
   async run(
@@ -96,9 +125,10 @@ export class BrowserRuntime {
 
     this.lastPlan = plan;
     const runner = new PlanRunner(
-      this.session.getPage(),
+      this.session,
       this.policy,
       this.experiences,
+      this.plugins,
     );
     let result = await runner.run(plan, {
       resumeFromStep: options.resumeFromStep,
@@ -106,7 +136,6 @@ export class BrowserRuntime {
       metrics: this.metrics,
     });
 
-    // If structured recovery failed, ask optional computer-use fallback once.
     if (!result.ok && result.error && result.resumeFromStep !== undefined) {
       const fixPlan = await this.computerUseFallback.proposeFix({
         intent: plan.goal,
@@ -163,10 +192,6 @@ export class BrowserRuntime {
     });
   }
 
-  /**
-   * Planner boundary: turn intent -> plan, then execute deterministically.
-   * Hermes should eventually own planning; BuiltinPlanner covers simple intents.
-   */
   async execute(intent: string): Promise<RunResult> {
     const plan = await this.planner.plan(intent);
     if (!plan) {
@@ -183,6 +208,8 @@ export class BrowserRuntime {
     stateHash: string;
     problem: string;
     fix: Action[];
+    pageHint?: string;
+    signals?: string[];
   }) {
     return this.experiences.remember(input);
   }
@@ -191,11 +218,15 @@ export class BrowserRuntime {
     return this.experiences.list(limit);
   }
 
+  listPlugins() {
+    return this.plugins.list().map((p) => p.id);
+  }
+
   metricsSnapshot() {
     return this.metrics.snapshot();
   }
 
-  status(): RuntimeStatus {
+  async status(): Promise<RuntimeStatus> {
     const state = this.sessionMemory.getState();
     return {
       attached: this.session.isAttached(),
@@ -206,9 +237,12 @@ export class BrowserRuntime {
       memory: {
         l1SessionCached: Boolean(state),
         l2ExperienceCount: this.experiences.count(),
-        l3VectorIndex: "not_implemented",
+        l3VectorIndex: "local_hashing_embeddings",
+        l3VectorCount: this.experiences.vectorCount(),
         engine: "typescript+sqlite",
       },
+      tabs: this.session.isAttached() ? await this.session.listTabs() : [],
+      plugins: this.listPlugins(),
     };
   }
 

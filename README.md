@@ -118,7 +118,7 @@ Supported actions: `navigate`, `click`, `type`, `select`, `wait`, `scroll`, `ext
 - **Not a JSON dump of everything**
 - L1: RAM session cache
 - L2: `data/experiences.db` (SQLite). Only the fix steps are stored as a JSON column.
-- L3: vector similarity — planned, not implemented
+- L3: local hashing embeddings stored in SQLite (`embedding` blob) + cosine search
 
 ## Design principles
 
@@ -167,9 +167,19 @@ npm run bench:replay
 
 Runs a cookie-banner checkout fixture twice and estimates LLM-call savings vs a naive computer-use loop.
 
+## Multi-tab + plugins
+
+```bash
+npm run dev -- run-plan examples/multi-tab-plan.json
+curl http://127.0.0.1:8787/tabs
+curl http://127.0.0.1:8787/plugins
+```
+
+Built-in plugin: `cookie-consent` (universal recovery recipes).
+
 ## Roadmap
 
-- Embedding/vector similarity (true L3)
-- Multi-tab workflows
+- Real neural embeddings (optional upgrade over hashing L3)
+- More site plugins (Amazon/GitHub/etc.)
 - Optional debug extension (attach only)
 - Wire your live Hermes agent config to these tools

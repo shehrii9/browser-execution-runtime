@@ -8,6 +8,13 @@ export interface AttachOptions {
   startUrl?: string;
 }
 
+export interface TabInfo {
+  index: number;
+  url: string;
+  title: string;
+  active: boolean;
+}
+
 export class BrowserSession {
   private browser: Browser | null = null;
   private context: BrowserContext | null = null;
@@ -59,8 +66,66 @@ export class BrowserSession {
     return this.page;
   }
 
+  getContext(): BrowserContext {
+    if (!this.context) {
+      throw new Error("Browser session is not attached. Call attach() first.");
+    }
+    return this.context;
+  }
+
   isAttached(): boolean {
     return this.page !== null;
+  }
+
+  async listTabs(): Promise<TabInfo[]> {
+    const context = this.getContext();
+    const pages = context.pages();
+    const infos: TabInfo[] = [];
+    for (let i = 0; i < pages.length; i++) {
+      const p = pages[i]!;
+      infos.push({
+        index: i,
+        url: p.url(),
+        title: await p.title().catch(() => ""),
+        active: p === this.page,
+      });
+    }
+    return infos;
+  }
+
+  async newTab(url?: string): Promise<TabInfo> {
+    const context = this.getContext();
+    const page = await context.newPage();
+    this.page = page;
+    if (url) {
+      await page.goto(url, { waitUntil: "domcontentloaded" });
+    }
+    const tabs = await this.listTabs();
+    return tabs.find((t) => t.active) ?? tabs[tabs.length - 1]!;
+  }
+
+  async switchTab(index: number): Promise<TabInfo> {
+    const pages = this.getContext().pages();
+    const page = pages[index];
+    if (!page) throw new Error(`No tab at index ${index}`);
+    this.page = page;
+    await page.bringToFront().catch(() => undefined);
+    const tabs = await this.listTabs();
+    return tabs[index]!;
+  }
+
+  async closeTab(index?: number): Promise<TabInfo[]> {
+    const pages = this.getContext().pages();
+    const targetIndex = index ?? pages.findIndex((p) => p === this.page);
+    const page = pages[targetIndex];
+    if (!page) throw new Error(`No tab at index ${targetIndex}`);
+    if (pages.length === 1) {
+      throw new Error("Cannot close the last tab");
+    }
+    await page.close();
+    const remaining = this.getContext().pages();
+    this.page = remaining[Math.max(0, targetIndex - 1)] ?? remaining[0]!;
+    return this.listTabs();
   }
 
   async close(): Promise<void> {
