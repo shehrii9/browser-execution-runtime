@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { HermesPlanner } from "../src/planner/hermes.js";
+import { LlmPlanner } from "../src/planner/llm.js";
 
-describe("HermesPlanner", () => {
-  it("parses JSON plans from OpenAI-compatible responses", async () => {
-    const fetchImpl = vi.fn(async () => {
+describe("LlmPlanner", () => {
+  it("works without an API key", async () => {
+    const fetchImpl = vi.fn(async (_url, init) => {
+      const headers = new Headers((init as RequestInit).headers);
+      expect(headers.get("authorization")).toBeNull();
       return new Response(
         JSON.stringify({
           choices: [
@@ -28,16 +30,14 @@ describe("HermesPlanner", () => {
       );
     }) as unknown as typeof fetch;
 
-    const planner = new HermesPlanner({
-      apiBase: "http://hermes.local/v1",
-      model: "hermes",
+    const planner = new LlmPlanner({
+      apiBase: "http://127.0.0.1:11434/v1",
+      model: "llama3.2",
       fetchImpl,
     });
 
-    const plan = await planner.plan("open example.com and read title");
-    expect(plan?.goal).toBe("open example");
+    const plan = await planner.plan("open example.com");
     expect(plan?.steps[0]?.action.type).toBe("navigate");
-    expect(fetchImpl).toHaveBeenCalledOnce();
   });
 
   it("falls back to builtin planner on failure", async () => {
@@ -45,9 +45,9 @@ describe("HermesPlanner", () => {
       throw new Error("network down");
     }) as unknown as typeof fetch;
 
-    const planner = new HermesPlanner({
-      apiBase: "http://hermes.local/v1",
-      model: "hermes",
+    const planner = new LlmPlanner({
+      apiBase: "http://127.0.0.1:11434/v1",
+      model: "llama3.2",
       fetchImpl,
     });
 

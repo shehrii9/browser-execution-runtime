@@ -196,7 +196,7 @@ export class BrowserRuntime {
     const plan = await this.planner.plan(intent);
     if (!plan) {
       throw new Error(
-        `No planner match for intent. Provide an explicit plan via run(), or plug in a Hermes planner. Intent: ${intent}`,
+        `No planner match for intent. Provide an explicit plan via run(), or set BER_LLM_API_BASE / inject a Planner. Intent: ${intent}`,
       );
     }
     return this.run(plan);

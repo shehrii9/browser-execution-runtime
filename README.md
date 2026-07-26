@@ -1,95 +1,102 @@
 # Browser Execution Runtime
 
-A deterministic **browser execution kernel** for AI agents (built as a Hermes “hands” layer).
+An **open, provider-agnostic browser execution wrapper** for AI agents.
 
-Hermes plans. This runtime executes via CDP, keeps compact semantic state, recovers from common failures, and remembers successful fixes so you stop paying computer-use token costs on every step.
+Any agent can wire it up. No vendor lock-in. **No API key required.**
+
+Your agent plans (or you pass an explicit JSON plan). This runtime executes via CDP, keeps compact semantic state, recovers from common failures, and remembers successful fixes so you stop paying computer-use token costs on every step.
 
 ```text
-Hermes (brain)
-   ↓ intent / plan
-Browser Execution Runtime
+Any agent / LLM / script
+   ↓ intent or JSON plan
+Browser Execution Runtime  (open wrapper)
    ↓ CDP actions + recovery + experience memory
 Chrome / Chromium
 ```
 
-## Features (v0.1)
+## Why this is open
+
+- Works **without any LLM** (explicit plans + builtin intents)
+- Works with **any OpenAI-compatible endpoint** (Ollama, vLLM, LM Studio, OpenAI, Hermes, OpenRouter…)
+- **API key is optional** — omit it for local/no-auth providers
+- Standard HTTP daemon + OpenAI-style tool schemas anyone can register
+
+See [`INTEGRATING.md`](./INTEGRATING.md) for bring-your-own-model wiring.
+
+## Features
 
 - Attach/launch Chromium through Playwright/CDP
-- Explicit JSON **action plans** (transport format only)
-- Built-in intents: `open <url>`, `search <query> on <site>`
-- Injectable planner boundary + OpenAI-compatible Hermes planner
-- Hermes tool bridge (`browser_attach/execute/observe/...`)
-- Semantic page state (buttons/inputs/dialogs/signals)
-- State diffs for cheap model context
-- Recovery heuristics (cookie/modals/timeouts)
-- **SQLite experience memory** (not Rust; not “save everything as JSON”)
-- L1 in-memory session cache + L2 SQLite experiences
-- Resume failed runs + failure screenshots
-- Telemetry counters (steps/recoveries/experience hits)
-- Computer-use fallback cascade (vision screenshot → text Hermes planner)
-- Experience soft-match replay + `npm run bench:replay`
-- Local HTTP daemon for Hermes tool calls
+- Explicit JSON action plans
+- Builtin intents + optional LLM planner
+- Agent tool bridge (`browser_attach/execute/observe/...`)
+- Semantic page state + diffs
+- Recovery heuristics + site plugins
+- SQLite experience memory + local L3 embeddings
+- Multi-tab actions
+- Computer-use fallback cascade (optional)
+- Local HTTP daemon
 - Safety policy (domain allowlist, purchase blocking)
 
-See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the decided-vs-shipped matrix and how this relates to the ChatGPT mega-plan.
-
-## Quick start
+## Quick start (no API key)
 
 ```bash
 npm install
 npx playwright install chromium
 npm test
 npm run daemon
-```
-
-### Hermes integration (Phase 1)
-
-```bash
-# 1) Start daemon with Hermes as planner (OpenAI-compatible API)
-BER_HERMES_API_BASE=http://127.0.0.1:8000/v1 \
-BER_HERMES_MODEL=hermes \
-npm run daemon
-
-# 2) Export tool schemas into your Hermes agent
-npm run dev -- hermes-tools examples/hermes-tools.json
-
-# 3) From Hermes (or CLI bridge), call tools:
-npm run dev -- hermes-call browser_attach '{"startUrl":"https://example.com","profile":"persistent"}'
-npm run dev -- hermes-call browser_execute '{"intent":"open https://example.com and extract the heading"}'
-npm run dev -- hermes-call browser_observe '{}'
-```
-
-Hermes should prefer these tools over computer-use. The runtime plans (via Hermes API if configured), executes via CDP, recovers, and stores experiences in SQLite.
-
-### CLI
-
-```bash
-# Observe a page
-npm run dev -- observe https://example.com
-
-# Run a plan
+npm run dev -- doctor
 npm run dev -- run-plan examples/sample-plan.json
-
-# Built-in / Hermes-backed intent
-npm run dev -- execute "open https://example.com"
 ```
 
-### Daemon API
+## Wire any agent
+
+```bash
+# export tool schemas
+npm run dev -- tools examples/agent-tools.json
+
+# call tools against the daemon
+npm run dev -- call browser_attach '{"startUrl":"https://example.com"}'
+npm run dev -- call browser_run_plan '{"plan":{"goal":"open","steps":[{"action":{"type":"navigate","url":"https://example.com"}}]}}'
+```
+
+### Optional local LLM planner (still no key)
+
+```bash
+BER_LLM_API_BASE=http://127.0.0.1:11434/v1 \
+BER_LLM_MODEL=llama3.2 \
+npm run daemon
+```
+
+### Optional hosted provider
+
+```bash
+BER_LLM_API_BASE=https://api.openai.com/v1 \
+BER_LLM_API_KEY=sk-... \
+BER_LLM_MODEL=gpt-4.1-mini \
+npm run daemon
+```
+
+Provider examples: `examples/ber.config.example.json`
+
+## CLI
+
+```bash
+npm run dev -- observe https://example.com
+npm run dev -- run-plan examples/sample-plan.json
+npm run dev -- execute "open https://example.com"
+npm run dev -- run-plan examples/multi-tab-plan.json
+```
+
+## Daemon API
 
 ```bash
 curl -X POST http://127.0.0.1:8787/attach \
   -H 'content-type: application/json' \
   -d '{"startUrl":"https://example.com","profile":"persistent"}'
 
-curl -X POST http://127.0.0.1:8787/execute \
+curl -X POST http://127.0.0.1:8787/run \
   -H 'content-type: application/json' \
-  -d '{"intent":"open https://example.com"}'
-```
-
-For `/run`, wrap the plan:
-
-```json
-{ "plan": { "goal": "...", "steps": [] } }
+  -d '{"plan":{"goal":"open","steps":[{"action":{"type":"navigate","url":"https://example.com"}}]}}'
 ```
 
 ## Plan format
@@ -110,22 +117,23 @@ For `/run`, wrap the plan:
 }
 ```
 
-Supported actions: `navigate`, `click`, `type`, `select`, `wait`, `scroll`, `extract`, `press`, `dismiss_overlays`, `observe`.
+Supported actions: `navigate`, `click`, `type`, `select`, `wait`, `scroll`, `extract`, `press`, `dismiss_overlays`, `observe`, `new_tab`, `switch_tab`, `close_tab`.
 
-## Memory (important)
+## Memory
 
 - **Not Rust**
 - **Not a JSON dump of everything**
 - L1: RAM session cache
-- L2: `data/experiences.db` (SQLite). Only the fix steps are stored as a JSON column.
-- L3: local hashing embeddings stored in SQLite (`embedding` blob) + cosine search
+- L2: `data/experiences.db` (SQLite; fix steps stored as a JSON column)
+- L3: local hashing embeddings in SQLite + cosine search
 
 ## Design principles
 
-1. LLM plans rarely; runtime acts often
+1. Agent plans rarely; runtime acts often
 2. Send state diffs, not screenshots, by default
 3. Remember fixes; replay them with confidence gates
 4. Computer-use/vision is fallback, not the hot path
+5. Stay provider-agnostic — wrapper, not a locked SaaS client
 
 ## Project layout
 
@@ -133,53 +141,41 @@ Supported actions: `navigate`, `click`, `type`, `select`, `wait`, `scroll`, `ext
 src/
   runtime.ts          # public runtime facade
   api/server.ts       # local daemon
-  hermes/             # tool schemas, HTTP client, bridge
-  browser/session.ts  # chrome attach/launch
-  planner/            # builtin + Hermes LLM planner
-  memory/             # L1 session cache
+  agent/              # tool schemas, HTTP client, bridge
+  browser/            # chrome attach/launch + tabs
+  planner/            # builtin + generic LLM planner
+  memory/             # L1 cache + embeddings
   state/              # observe/diff/fingerprint
   selectors/          # a11y/text targeting
-  executor/           # actions + plan runner/scheduler
+  executor/           # actions + plan runner
   recovery/           # problem classification + heuristics
   experience/         # L2 sqlite memory
+  plugins/            # site plugins
+  fallback/           # optional computer-use cascade
   telemetry/          # run metrics
 ```
 
 ## Env
 
-| Var | Meaning |
-|---|---|
-| `BER_PORT` | Daemon port (default `8787`) |
-| `BER_DATA_DIR` | Data dir for sqlite (default `./data`) |
-| `BER_HEADLESS=0` | Show browser |
-| `BER_ALLOW_PURCHASE=1` | Allow purchase-like goals/clicks |
-| `BER_DOMAINS` | Comma domain allowlist |
-| `BER_HERMES_API_BASE` | OpenAI-compatible planner endpoint |
-| `BER_HERMES_API_KEY` | Optional API key |
-| `BER_HERMES_MODEL` | Model name (default `hermes`) |
-| `BER_URL` | Daemon URL for `hermes-call` |
+| Var | Required | Meaning |
+|---|---|---|
+| `BER_PORT` | no | Daemon port (default `8787`) |
+| `BER_DATA_DIR` | no | Data dir (default `./data`) |
+| `BER_HEADLESS=0` | no | Show browser |
+| `BER_ALLOW_PURCHASE=1` | no | Allow purchase-like goals/clicks |
+| `BER_DOMAINS` | no | Comma domain allowlist |
+| `BER_LLM_API_BASE` | no | Any OpenAI-compatible planner endpoint |
+| `BER_LLM_API_KEY` | no | Only if provider needs auth |
+| `BER_LLM_MODEL` | no | Model name (default `llama3.2`) |
+| `BER_URL` | no | Daemon URL for `call` |
+| `BER_HERMES_*` | no | Legacy aliases |
 
-## Benchmark (Phase 2)
+## Benchmark
 
 ```bash
 npm run bench:replay
 ```
 
-Runs a cookie-banner checkout fixture twice and estimates LLM-call savings vs a naive computer-use loop.
+## License
 
-## Multi-tab + plugins
-
-```bash
-npm run dev -- run-plan examples/multi-tab-plan.json
-curl http://127.0.0.1:8787/tabs
-curl http://127.0.0.1:8787/plugins
-```
-
-Built-in plugin: `cookie-consent` (universal recovery recipes).
-
-## Roadmap
-
-- Real neural embeddings (optional upgrade over hashing L3)
-- More site plugins (Amazon/GitHub/etc.)
-- Optional debug extension (attach only)
-- Wire your live Hermes agent config to these tools
+MIT — open for anyone to wrap, fork, and integrate.

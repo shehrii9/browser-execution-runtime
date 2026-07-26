@@ -1,0 +1,95 @@
+{
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_attach",
+        "description": "Attach/launch the browser execution runtime. Prefer this over computer-use.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "startUrl": { "type": "string" },
+            "cdpUrl": { "type": "string" },
+            "userDataDir": { "type": "string" },
+            "profile": {
+              "type": "string",
+              "enum": ["ephemeral", "persistent"]
+            },
+            "headless": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_execute",
+        "description": "High-level intent. Runtime planner converts to actions and executes with recovery/memory.",
+        "parameters": {
+          "type": "object",
+          "required": ["intent"],
+          "properties": {
+            "intent": { "type": "string" }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_run_plan",
+        "description": "Execute an explicit deterministic browser plan JSON.",
+        "parameters": {
+          "type": "object",
+          "required": ["plan"],
+          "properties": {
+            "plan": { "type": "object" },
+            "resumeFromStep": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_observe",
+        "description": "Compact semantic browser state for cheap reasoning (not screenshots).",
+        "parameters": { "type": "object", "properties": {} }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_diff",
+        "description": "What changed since last observation.",
+        "parameters": { "type": "object", "properties": {} }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_resume",
+        "description": "Resume last failed plan.",
+        "parameters": { "type": "object", "properties": {} }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_status",
+        "description": "Runtime status and memory counters.",
+        "parameters": { "type": "object", "properties": {} }
+      }
+    }
+  ],
+  "endpoints": {
+    "base": "http://127.0.0.1:8787",
+    "attach": "POST /attach",
+    "execute": "POST /execute",
+    "run": "POST /run",
+    "observe": "GET /observe",
+    "diff": "GET /diff",
+    "resume": "POST /resume",
+    "status": "GET /status"
+  }
+}

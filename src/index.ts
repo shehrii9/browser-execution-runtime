@@ -14,18 +14,28 @@ export {
 } from "./planner/engine.js";
 export type { Planner, ComputerUseFallback } from "./planner/engine.js";
 export {
+  LlmPlanner,
+  LlmComputerUseFallback,
+  createLlmPlannerFromEnv,
+  resolveLlmEnv,
+  // aliases
   HermesPlanner,
   HermesComputerUseFallback,
   createHermesPlannerFromEnv,
-} from "./planner/hermes.js";
+} from "./planner/llm.js";
 export {
   VisionComputerUseFallback,
   CascadingComputerUseFallback,
   createComputerUseFallbackFromEnv,
 } from "./fallback/computerUse.js";
-export { HermesRuntimeClient } from "./hermes/client.js";
-export { HermesToolBridge, createDefaultBridge } from "./hermes/bridge.js";
-export { HERMES_TOOLS } from "./hermes/tools.js";
+export { RuntimeClient } from "./agent/client.js";
+export { ToolBridge, createDefaultBridge } from "./agent/bridge.js";
+export { AGENT_TOOLS } from "./agent/tools.js";
+export {
+  HermesRuntimeClient,
+  HermesToolBridge,
+  HERMES_TOOLS,
+} from "./hermes/compat.js";
 export { MetricsCollector } from "./telemetry/metrics.js";
 export { diffStates } from "./state/diff.js";
 export { observePage } from "./state/observe.js";

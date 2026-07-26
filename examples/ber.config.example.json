@@ -1,0 +1,36 @@
+{
+  "runtime": {
+    "host": "127.0.0.1",
+    "port": 8787,
+    "headless": true,
+    "dataDir": "./data"
+  },
+  "llm": {
+    "apiBase": "http://127.0.0.1:11434/v1",
+    "apiKey": null,
+    "model": "llama3.2",
+    "note": "apiKey is optional. Set null/omit for local providers."
+  },
+  "providers": {
+    "ollama": {
+      "apiBase": "http://127.0.0.1:11434/v1",
+      "apiKey": null,
+      "model": "llama3.2"
+    },
+    "vllm": {
+      "apiBase": "http://127.0.0.1:8000/v1",
+      "apiKey": null,
+      "model": "your-model"
+    },
+    "openai": {
+      "apiBase": "https://api.openai.com/v1",
+      "apiKey": "env:OPENAI_API_KEY",
+      "model": "gpt-4.1-mini"
+    },
+    "hermes": {
+      "apiBase": "http://127.0.0.1:8000/v1",
+      "apiKey": null,
+      "model": "hermes"
+    }
+  }
+}

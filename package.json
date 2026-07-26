@@ -19,7 +19,9 @@
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "daemon": "tsx src/cli.ts daemon",
-    "hermes-tools": "tsx src/cli.ts hermes-tools",
+    "doctor": "tsx src/cli.ts doctor",
+    "tools": "tsx src/cli.ts tools",
+    "hermes-tools": "tsx src/cli.ts tools",
     "bench:replay": "tsx benchmarks/experience-replay.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
