@@ -1,11 +1,13 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { z } from "zod";
+import { defaultPersistentProfileDir } from "../browser/profiles.js";
 import { BrowserRuntime } from "../runtime.js";
 import { ActionSchema, PlanSchema, PolicySchema } from "../types.js";
 
 const AttachBodySchema = z.object({
   cdpUrl: z.string().optional(),
   userDataDir: z.string().optional(),
+  profile: z.enum(["ephemeral", "persistent"]).optional(),
   headless: z.boolean().optional(),
   startUrl: z.string().url().optional(),
 });
@@ -55,7 +57,15 @@ export function startDaemon(options: DaemonOptions): Server {
 
       if (method === "POST" && path === "/attach") {
         const body = AttachBodySchema.parse(await readJson(req));
-        const state = await runtime.attach(body);
+        const userDataDir =
+          body.userDataDir ??
+          (body.profile === "persistent" ? defaultPersistentProfileDir() : undefined);
+        const state = await runtime.attach({
+          cdpUrl: body.cdpUrl,
+          userDataDir,
+          headless: body.headless,
+          startUrl: body.startUrl,
+        });
         return sendJson(res, 200, { ok: true, state });
       }
 

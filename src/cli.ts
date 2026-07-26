@@ -1,8 +1,11 @@
 #!/usr/bin/env node
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { startDaemon } from "./api/server.js";
-import { BrowserRuntime } from "./runtime.js";
+import { defaultPersistentProfileDir } from "./browser/profiles.js";
+import { createDefaultBridge } from "./hermes/bridge.js";
+import { HERMES_TOOLS } from "./hermes/tools.js";
+import { createRuntimeFromEnv } from "./runtimeFactory.js";
 import { PlanSchema } from "./types.js";
 
 async function main(): Promise<void> {
@@ -13,25 +16,35 @@ async function main(): Promise<void> {
     return;
   }
 
-  const runtime = new BrowserRuntime({
-    dataDir: process.env.BER_DATA_DIR ?? resolve("data"),
-    policy: {
-      headless: process.env.BER_HEADLESS !== "0",
-      allowPurchase: process.env.BER_ALLOW_PURCHASE === "1",
-      domains: (process.env.BER_DOMAINS ?? "")
-        .split(",")
-        .map((d) => d.trim())
-        .filter(Boolean),
-      allowNavigationOutsideAllowlist: !process.env.BER_DOMAINS,
-    },
-  });
+  // Lightweight commands that don't need a local browser runtime instance.
+  if (command === "hermes-tools") {
+    const out = rest[0];
+    const payload = JSON.stringify({ tools: HERMES_TOOLS }, null, 2);
+    if (out) writeFileSync(out, `${payload}\n`);
+    else console.log(payload);
+    return;
+  }
+
+  if (command === "hermes-call") {
+    const name = rest[0];
+    const argsJson = rest[1] ?? "{}";
+    if (!name) throw new Error('Usage: ber hermes-call <toolName> \'{"intent":"..."}\'');
+    const bridge = createDefaultBridge();
+    const result = await bridge.handle({
+      name,
+      arguments: JSON.parse(argsJson) as Record<string, unknown>,
+    });
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  const runtime = createRuntimeFromEnv();
 
   try {
     switch (command) {
       case "daemon": {
         const port = Number(process.env.BER_PORT ?? 8787);
         startDaemon({ runtime, port });
-        // Keep process alive; runtime closed via /close or process signal.
         process.on("SIGINT", async () => {
           await runtime.close();
           process.exit(0);
@@ -40,7 +53,13 @@ async function main(): Promise<void> {
       }
       case "attach": {
         const startUrl = rest[0];
-        const state = await runtime.attach({ startUrl });
+        const profile = rest.includes("--persistent")
+          ? defaultPersistentProfileDir()
+          : undefined;
+        const state = await runtime.attach({
+          startUrl,
+          userDataDir: profile,
+        });
         console.log(JSON.stringify(state, null, 2));
         await runtime.close();
         return;
@@ -90,22 +109,27 @@ function printHelp(): void {
 
 Commands:
   daemon                     Start local HTTP daemon (default :8787)
-  attach [url]               Launch browser and print semantic state
-  observe [url]              Observe a page and print semantic state
-  run-plan <file> [url]      Execute an explicit JSON plan
-  execute "<intent>"         Run a built-in intent (open/search)
+  attach [url] [--persistent]
+  observe [url]
+  run-plan <file> [url]
+  execute "<intent>"
+  hermes-tools [outfile]     Print/write OpenAI-style tool schemas
+  hermes-call <tool> <json>  Call daemon through Hermes tool bridge
 
 Env:
-  BER_PORT                   Daemon port (default 8787)
-  BER_DATA_DIR               Data directory (default ./data)
-  BER_HEADLESS=0             Show browser window
-  BER_ALLOW_PURCHASE=1       Allow purchase-like actions
-  BER_DOMAINS=a.com,b.com    Domain allowlist
-  BER_CHROME_CHANNEL         Playwright chrome channel
+  BER_PORT / BER_URL / BER_DATA_DIR
+  BER_HEADLESS=0
+  BER_ALLOW_PURCHASE=1
+  BER_DOMAINS=a.com,b.com
+  BER_CHROME_CHANNEL
+  BER_HERMES_API_BASE        OpenAI-compatible Hermes endpoint
+  BER_HERMES_API_KEY
+  BER_HERMES_MODEL
 
-Hermes integration:
-  1) npm run daemon
-  2) POST /attach, /execute or /run with JSON plans
+Hermes quick start:
+  1) BER_HERMES_API_BASE=... npm run daemon
+  2) npm run dev -- hermes-tools /tmp/hermes-tools.json
+  3) Point Hermes tools at those schemas / use hermes-call
 `);
 }
 

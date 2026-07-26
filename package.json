@@ -19,6 +19,7 @@
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "daemon": "tsx src/cli.ts daemon",
+    "hermes-tools": "tsx src/cli.ts hermes-tools",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

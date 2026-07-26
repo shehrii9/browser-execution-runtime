@@ -33,20 +33,28 @@ export function heuristicFixes(problem: ProblemKind): Action[][] {
           { type: "dismiss_overlays" },
           { type: "wait", ms: 500 },
         ],
+        [
+          {
+            type: "click",
+            target: { role: "button", name: "Accept all" },
+          },
+        ],
       ];
     case "dialog_blocking":
       return [
         [{ type: "dismiss_overlays" }],
         [{ type: "press", key: "Escape" }, { type: "dismiss_overlays" }],
+        [{ type: "click", target: { role: "button", name: "Close" } }],
       ];
     case "target_not_found":
       return [
         [{ type: "wait", ms: 1000 }],
         [{ type: "dismiss_overlays" }, { type: "wait", ms: 500 }],
         [{ type: "scroll", direction: "down", amount: 600 }],
+        [{ type: "press", key: "Escape" }, { type: "wait", ms: 300 }],
       ];
     case "navigation_timeout":
-      return [[{ type: "wait", ms: 1500 }]];
+      return [[{ type: "wait", ms: 1500 }], [{ type: "press", key: "F5" }]];
     default:
       return [[{ type: "dismiss_overlays" }], [{ type: "wait", ms: 800 }]];
   }

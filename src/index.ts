@@ -1,5 +1,6 @@
 export { BrowserRuntime } from "./runtime.js";
 export type { RuntimeOptions } from "./runtime.js";
+export { createRuntimeFromEnv } from "./runtimeFactory.js";
 export { startDaemon } from "./api/server.js";
 export { createPolicy } from "./policy.js";
 export { ExperienceStore } from "./experience/store.js";
@@ -9,6 +10,14 @@ export {
   NoopComputerUseFallback,
 } from "./planner/engine.js";
 export type { Planner, ComputerUseFallback } from "./planner/engine.js";
+export {
+  HermesPlanner,
+  HermesComputerUseFallback,
+  createHermesPlannerFromEnv,
+} from "./planner/hermes.js";
+export { HermesRuntimeClient } from "./hermes/client.js";
+export { HermesToolBridge, createDefaultBridge } from "./hermes/bridge.js";
+export { HERMES_TOOLS } from "./hermes/tools.js";
 export { MetricsCollector } from "./telemetry/metrics.js";
 export { diffStates } from "./state/diff.js";
 export { observePage } from "./state/observe.js";

@@ -40,6 +40,25 @@ npm test
 npm run daemon
 ```
 
+### Hermes integration (Phase 1)
+
+```bash
+# 1) Start daemon with Hermes as planner (OpenAI-compatible API)
+BER_HERMES_API_BASE=http://127.0.0.1:8000/v1 \
+BER_HERMES_MODEL=hermes \
+npm run daemon
+
+# 2) Export tool schemas into your Hermes agent
+npm run dev -- hermes-tools examples/hermes-tools.json
+
+# 3) From Hermes (or CLI bridge), call tools:
+npm run dev -- hermes-call browser_attach '{"startUrl":"https://example.com","profile":"persistent"}'
+npm run dev -- hermes-call browser_execute '{"intent":"open https://example.com and extract the heading"}'
+npm run dev -- hermes-call browser_observe '{}'
+```
+
+Hermes should prefer these tools over computer-use. The runtime plans (via Hermes API if configured), executes via CDP, recovers, and stores experiences in SQLite.
+
 ### CLI
 
 ```bash
@@ -49,20 +68,20 @@ npm run dev -- observe https://example.com
 # Run a plan
 npm run dev -- run-plan examples/sample-plan.json
 
-# Built-in intent
+# Built-in / Hermes-backed intent
 npm run dev -- execute "open https://example.com"
 ```
 
-### Daemon API (Hermes)
+### Daemon API
 
 ```bash
 curl -X POST http://127.0.0.1:8787/attach \
   -H 'content-type: application/json' \
-  -d '{"startUrl":"https://example.com"}'
+  -d '{"startUrl":"https://example.com","profile":"persistent"}'
 
-curl -X POST http://127.0.0.1:8787/run \
+curl -X POST http://127.0.0.1:8787/execute \
   -H 'content-type: application/json' \
-  -d @examples/sample-plan.json
+  -d '{"intent":"open https://example.com"}'
 ```
 
 For `/run`, wrap the plan:
@@ -70,8 +89,6 @@ For `/run`, wrap the plan:
 ```json
 { "plan": { "goal": "...", "steps": [] } }
 ```
-
-See `examples/hermes-tools.json` for tool schemas.
 
 ## Plan format
 
@@ -134,11 +151,15 @@ src/
 | `BER_HEADLESS=0` | Show browser |
 | `BER_ALLOW_PURCHASE=1` | Allow purchase-like goals/clicks |
 | `BER_DOMAINS` | Comma domain allowlist |
+| `BER_HERMES_API_BASE` | OpenAI-compatible planner endpoint |
+| `BER_HERMES_API_KEY` | Optional API key |
+| `BER_HERMES_MODEL` | Model name (default `hermes`) |
+| `BER_URL` | Daemon URL for `hermes-call` |
 
 ## Roadmap
 
-- External planner adapter for Hermes models
 - Richer experience similarity (embeddings)
 - Multi-tab workflows
 - Optional debug extension (attach only)
 - Benchmarks vs computer-use token usage
+- Wire your live Hermes agent config to these tools

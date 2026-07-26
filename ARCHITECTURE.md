@@ -52,7 +52,8 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the He
 | Event bus | Not yet |
 | Chrome extension bridge | Not yet (intentionally later) |
 | Rust core / Python SDK | Not yet (intentionally later) |
-| Full Hermes LLM planner adapter | Not yet |
+| Full Hermes LLM planner adapter | Done (OpenAI-compatible via `BER_HERMES_API_BASE`) |
+| Hermes tool bridge/client | Done (`hermes-call`, `HERMES_TOOLS`) |
 
 ---
 
