@@ -5,7 +5,8 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
     exclude: ["tests/browser-smoke.test.ts"],
-    pool: "threads",
+    // better-sqlite3 is a native addon; worker threads can segfault on Linux CI.
+    pool: "forks",
     maxWorkers: 1,
     fileParallelism: false,
   },

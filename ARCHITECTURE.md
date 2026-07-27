@@ -70,7 +70,7 @@ Current stack:
 | Provider-agnostic / no required API key | Done |
 | Plugin workflows wired into planner | Done (`run <workflow> on <domain>`, media open/search/ready_player) |
 | Iframe-aware targets | Done (`frame` / `frameUrl` / `frameName` / `frameIndex`; observe walks frame tree) |
-| CI | Done (GitHub Actions: typecheck, test, build, pack:check) |
+| CI | Done (GitHub Actions: sqlite smoke, typecheck, unit tests incl. L2 experience, build, pack:check) |
 
 ---
 

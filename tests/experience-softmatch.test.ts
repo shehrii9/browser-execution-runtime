@@ -9,7 +9,7 @@ afterEach(() => {
   while (stores.length) stores.pop()?.close();
 });
 
-describe.skipIf(!!process.env.CI)("experience soft match", () => {
+describe("experience soft match", () => {
   it("matches by signal overlap when fingerprint differs", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ber-soft-"));
     const store = new ExperienceStore(join(dir, "experiences.db"));
