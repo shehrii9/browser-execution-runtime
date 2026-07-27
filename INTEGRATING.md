@@ -55,6 +55,8 @@ Or paste the short snippet from:
 
 - `examples/integrations/cursor-rules.md`
 
+**MCP (recommended):** stdio server that exposes the same `browser_*` tools — see `examples/integrations/mcp.md`. Start `npm run daemon`, then add `npm run mcp` to `.cursor/mcp.json`.
+
 ### OpenAI Codex
 
 Use the task prompt template:

@@ -65,6 +65,7 @@ Current stack:
 | Python SDK | Done (HTTP client parity with daemon: diff/act/tabs/events/policy/…) |
 | Full Hermes LLM planner adapter | Done as generic `LlmPlanner` (OpenAI-compatible, key optional) |
 | Hermes tool bridge/client | Done as generic `ToolBridge` / `AGENT_TOOLS` |
+| MCP stdio server | Done (`npm run mcp` / `ber mcp` → `browser_*` tools) |
 | Computer-use fallback (vision+text) | Done (`VisionComputerUseFallback` cascade) |
 | Experience replay benchmark | Done (`npm run bench:replay`) |
 | Provider-agnostic / no required API key | Done |
