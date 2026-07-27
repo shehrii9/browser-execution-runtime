@@ -490,6 +490,8 @@ npm install
 npx playwright install chromium
 npm test              # unit tests (no browser)
 npm run test:browser  # Playwright smoke (example.com + fixtures)
+# headed smoke on the cloud desktop (XFCE on DISPLAY :1):
+# DISPLAY=:1 BER_HEADLESS=0 npm run test:browser
 npm run typecheck
 npm run build
 npm run bench:replay
