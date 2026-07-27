@@ -287,8 +287,19 @@ async function runMediaCommand(
     const candidates = [
       page.getByRole("button", { name: /skip ad/i }),
       page.getByRole("button", { name: /^skip$/i }),
+      page.getByRole("button", { name: /skip intro/i }),
       page.getByText(/skip ad/i),
-      page.locator(".ytp-ad-skip-button, .ytp-skip-ad-button, button.ytp-ad-skip-button-modern"),
+      page.getByText(/skip intro/i),
+      page.locator(
+        [
+          ".ytp-ad-skip-button",
+          ".ytp-skip-ad-button",
+          "button.ytp-ad-skip-button-modern",
+          "[class*='skip-ad' i]",
+          "[class*='skipAd' i]",
+          "[aria-label*='Skip' i]",
+        ].join(", "),
+      ),
     ];
     for (const candidate of candidates) {
       try {
@@ -311,18 +322,41 @@ async function runMediaCommand(
     const result = await page
       .evaluate(
         `(() => {
-          const video = document.querySelector("video");
-          if (!video) return { ok: false, reason: "no_video" };
+          const pick = () => {
+            const nodes = Array.from(document.querySelectorAll("video, audio"));
+            if (!nodes.length) return null;
+            // Prefer the largest visible media element (main player, not a tiny preview).
+            let best = null;
+            let bestArea = -1;
+            for (const el of nodes) {
+              const r = el.getBoundingClientRect();
+              const area = Math.max(0, r.width) * Math.max(0, r.height);
+              const style = window.getComputedStyle(el);
+              const visible =
+                style.visibility !== "hidden" &&
+                style.display !== "none" &&
+                (area > 0 || el.tagName.toLowerCase() === "audio");
+              if (!visible) continue;
+              const score = el.tagName.toLowerCase() === "audio" ? Math.max(area, 1) : area;
+              if (score > bestArea) {
+                bestArea = score;
+                best = el;
+              }
+            }
+            return best || nodes[0];
+          };
+          const media = pick();
+          if (!media) return { ok: false, reason: "no_media" };
           const want = ${desired === null ? "null" : desired ? "true" : "false"};
           if (want === null) {
-            if (video.paused) video.play();
-            else video.pause();
+            if (media.paused) media.play();
+            else media.pause();
           } else if (want) {
-            video.play();
+            media.play();
           } else {
-            video.pause();
+            media.pause();
           }
-          return { ok: true, paused: video.paused };
+          return { ok: true, paused: media.paused, tag: media.tagName.toLowerCase() };
         })()`,
       )
       .catch(() => ({ ok: false, reason: "evaluate_failed" }));
@@ -341,9 +375,10 @@ async function runMediaCommand(
       };
     }
 
-    // Fallback: YouTube keyboard shortcut, then aria-labelled buttons.
+    // Fallback: space/k shortcuts used by many players, then aria-labelled buttons.
     if (command === "toggle") {
       await page.keyboard.press("k").catch(() => undefined);
+      await page.keyboard.press("Space").catch(() => undefined);
       await settlePage(page, { timeoutMs: 800, quietMs: 100 });
       return { ok: true, extracted: { media: "toggle" } };
     }
@@ -369,9 +404,9 @@ async function runMediaCommand(
     await page
       .evaluate(
         `(() => {
-          const video = document.querySelector("video");
-          if (!video) return false;
-          video.muted = ${command === "mute" ? "true" : "false"};
+          const media = document.querySelector("video, audio");
+          if (!media) return false;
+          media.muted = ${command === "mute" ? "true" : "false"};
           return true;
         })()`,
       )

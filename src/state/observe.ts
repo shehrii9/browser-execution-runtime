@@ -20,7 +20,7 @@ interface RawNode {
 }
 
 // Kept as a string so bundlers/tsx cannot inject helpers into the browser context.
-// Walks open shadow roots so YouTube-like custom elements are visible to agents.
+// Walks open shadow roots so media-site custom elements are visible to agents.
 const COLLECT_NODES_SCRIPT = `(() => {
   const interestingRoles = new Set([
     "button",
@@ -85,7 +85,7 @@ const COLLECT_NODES_SCRIPT = `(() => {
   const nodes = [];
   const seen = new Set();
   const selector =
-    "a, button, input, textarea, select, [role], dialog, [aria-modal='true'], h1, h2, h3, video, iframe";
+    "a, button, input, textarea, select, [role], dialog, [aria-modal='true'], h1, h2, h3, video, audio, iframe";
 
   const visit = (root) => {
     let elements;
@@ -105,7 +105,7 @@ const COLLECT_NODES_SCRIPT = `(() => {
       const tag = el.tagName.toLowerCase();
       if (
         !interestingRoles.has(role) &&
-        !["button", "a", "input", "textarea", "select", "dialog", "video", "iframe"].includes(
+        !["button", "a", "input", "textarea", "select", "dialog", "video", "audio", "iframe"].includes(
           tag,
         ) &&
         !/^h[1-6]$/.test(tag)
@@ -114,10 +114,23 @@ const COLLECT_NODES_SCRIPT = `(() => {
         continue;
       }
       nodes.push({
-        role: tag === "video" ? "video" : tag === "iframe" ? "iframe" : role,
+        role:
+          tag === "video"
+            ? "video"
+            : tag === "audio"
+              ? "audio"
+              : tag === "iframe"
+                ? "iframe"
+                : role,
         name:
           nameOf(el) ||
-          (tag === "video" ? "video" : tag === "iframe" ? el.getAttribute("title") || el.getAttribute("name") || "iframe" : ""),
+          (tag === "video"
+            ? "video"
+            : tag === "audio"
+              ? "audio"
+              : tag === "iframe"
+                ? el.getAttribute("title") || el.getAttribute("name") || "iframe"
+                : ""),
         text: (el.innerText || "").replace(/\\s+/g, " ").trim().slice(0, 80),
         placeholder: el.getAttribute("placeholder") || "",
         value: typeof el.value === "string" ? el.value.slice(0, 80) : "",

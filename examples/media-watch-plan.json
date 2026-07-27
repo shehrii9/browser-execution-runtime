@@ -1,5 +1,5 @@
 {
-  "goal": "Open a YouTube watch page, skip ad if present, play video",
+  "goal": "Open a media watch URL, skip ad if present, play",
   "steps": [
     {
       "id": "go",
@@ -21,7 +21,9 @@
       "id": "player",
       "action": {
         "type": "wait",
-        "target": { "css": "ytd-player, #movie_player, video" },
+        "target": {
+          "css": "video, audio, .video-js, .html5-video-player, [class*='player']"
+        },
         "timeoutMs": 15000
       }
     },

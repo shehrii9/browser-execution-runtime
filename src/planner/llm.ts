@@ -46,9 +46,9 @@ Rules:
 - Prefer role/name/text targets over brittle CSS.
 - Plan once with enough steps; do not narrate.
 - Include dismiss_overlays after navigations when popups are likely.
-- On SPAs / YouTube-like sites, use {"type":"wait","settle":true} after navigate/click.
+- On SPAs / media sites, use {"type":"wait","settle":true} after navigate/click.
 - For infinite scroll feeds use scroll with untilCss/untilText/untilCountAtLeast.
-- For video pages prefer {"type":"media","command":"play"|"skip_ad"} over screenshot clicks.
+- For video/audio pages prefer {"type":"media","command":"play"|"skip_ad"} over screenshot clicks.
 - Never include payment/purchase confirmation unless explicitly required.
 - Output JSON only. No markdown.`;
 

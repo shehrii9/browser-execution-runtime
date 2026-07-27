@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { SemanticState } from "../types.js";
+import { MEDIA_SITE_DOMAINS } from "../plugins/mediaSites.js";
 
 export function buildSignals(state: Omit<SemanticState, "fingerprint" | "observedAt">): string[] {
   const signals = new Set<string>();
@@ -26,11 +27,22 @@ export function buildSignals(state: Omit<SemanticState, "fingerprint" | "observe
   if (state.nodes.some((n) => n.role === "video" || n.tag === "video")) {
     signals.add("video_player");
   }
+  if (state.nodes.some((n) => n.tag === "audio" || n.role === "audio")) {
+    signals.add("audio_player");
+  }
   if (state.nodes.some((n) => n.tag === "iframe" || n.role === "iframe")) {
     signals.add("has_iframe");
   }
-  if (state.pageHint === "watch" || state.pageHint === "results") {
+  if (
+    state.pageHint === "watch" ||
+    state.pageHint === "results" ||
+    state.pageHint === "shorts" ||
+    state.pageHint === "media_home"
+  ) {
     signals.add(`hint:${state.pageHint}`);
+  }
+  if (isMediaHost(state.domain)) {
+    signals.add("media_site");
   }
   for (const dialog of state.dialogs.slice(0, 5)) {
     signals.add(`dialog:${normalizeToken(dialog)}`);
@@ -57,19 +69,43 @@ export function pageHintFromUrl(url: string, title: string): string {
     const u = new URL(url);
     const host = u.hostname.toLowerCase();
     const path = u.pathname.toLowerCase();
-    if (host.includes("youtube.com") || host === "youtu.be") {
-      if (path.startsWith("/watch") || host === "youtu.be") return "watch";
-      if (path.startsWith("/results") || u.searchParams.has("search_query")) {
+
+    if (isMediaHost(host)) {
+      if (path.includes("/shorts") || path.includes("/reel") || path.includes("/reels")) {
+        return "shorts";
+      }
+      if (
+        path.includes("/results") ||
+        path.includes("/search") ||
+        path.includes("/directory") ||
+        u.searchParams.has("q") ||
+        u.searchParams.has("search_query")
+      ) {
         return "results";
       }
-      if (path.startsWith("/shorts")) return "shorts";
-      if (path === "/" || path === "") return "home";
-      return "video_site";
+      if (
+        path.includes("/watch") ||
+        path.includes("/video") ||
+        path.includes("/videos/") ||
+        path.includes("/clip") ||
+        path.includes("/episode") ||
+        path.includes("/track") ||
+        path.includes("/listen") ||
+        host === "youtu.be" ||
+        /\/\d{5,}(\/|$)/.test(path)
+      ) {
+        return "watch";
+      }
+      if (path === "/" || path === "") return "media_home";
+      return "media_site";
     }
+
     if (path.includes("checkout") || path.includes("cart")) return "checkout";
     if (path.includes("login") || path.includes("signin")) return "login";
     if (path.includes("search") || u.searchParams.has("q")) return "search";
-    if (path.includes("/watch") || path.includes("/video")) return "watch";
+    if (path.includes("/watch") || path.includes("/video") || path.includes("/listen")) {
+      return "watch";
+    }
     if (path.includes("product") || path.includes("/dp/") || path.includes("/p/")) {
       return "product";
     }
@@ -80,8 +116,17 @@ export function pageHintFromUrl(url: string, title: string): string {
   const t = title.toLowerCase();
   if (t.includes("checkout") || t.includes("cart")) return "checkout";
   if (t.includes("sign in") || t.includes("log in")) return "login";
-  if (t.includes("search") || t.includes("youtube")) return "search";
+  if (t.includes("search")) return "search";
+  if (/\b(video|watch|stream|podcast|listen)\b/.test(t)) return "watch";
   return "page";
+}
+
+export function isMediaHost(domainOrHost: string): boolean {
+  const host = domainOrHost.toLowerCase().replace(/^www\./, "");
+  return MEDIA_SITE_DOMAINS.some((d) => {
+    const bare = d.replace(/^www\./, "");
+    return host === bare || host.endsWith(`.${bare}`) || host === d;
+  });
 }
 
 function normalizeToken(value: string): string {
