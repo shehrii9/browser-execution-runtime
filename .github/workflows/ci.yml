@@ -19,8 +19,6 @@ jobs:
         run: npm ci
       - name: Rebuild native modules
         run: npm rebuild better-sqlite3
-      - name: Rebuild native modules
-        run: npm rebuild better-sqlite3
       - name: Typecheck
         run: npm run typecheck
       - name: Unit tests
