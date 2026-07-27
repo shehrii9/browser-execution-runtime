@@ -2,7 +2,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 /**
- * Persistent profile used when Hermes asks for profile="persistent".
+ * Persistent profile used when an agent asks for profile="persistent".
  * This is a dedicated automation profile, not your daily Chrome profile
  * (locking/concurrency issues). For real logged-in Chrome, prefer cdpUrl.
  */

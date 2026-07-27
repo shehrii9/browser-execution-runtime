@@ -1,0 +1,17 @@
+[project]
+name = "browser-execution-runtime"
+version = "0.1.0"
+description = "Open Python client for the browser-execution-runtime daemon (no API key required)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[project.urls]
+Homepage = "https://github.com/example/browser-execution-runtime"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["browser_execution_runtime*"]

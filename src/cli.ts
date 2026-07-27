@@ -5,8 +5,7 @@ import { createDefaultBridge } from "./agent/bridge.js";
 import { AGENT_TOOLS } from "./agent/tools.js";
 import { startDaemon } from "./api/server.js";
 import { defaultPersistentProfileDir } from "./browser/profiles.js";
-import { resolveLlmEnv } from "./planner/llm.js";
-import { createRuntimeFromEnv } from "./runtimeFactory.js";
+import { getResolvedConfig, createRuntimeFromEnv } from "./runtimeFactory.js";
 import { PlanSchema } from "./types.js";
 
 async function main(): Promise<void> {
@@ -39,18 +38,26 @@ async function main(): Promise<void> {
   }
 
   if (command === "doctor") {
-    const llm = resolveLlmEnv();
+    const cfg = getResolvedConfig();
     console.log(
       JSON.stringify(
         {
-          mode: llm.apiBase ? "llm+runtime" : "runtime-only",
+          mode: cfg.llm.apiBase ? "llm+runtime" : "runtime-only",
+          configPath: cfg.configPath ?? null,
           llm: {
-            apiBase: llm.apiBase ?? null,
-            apiKeyConfigured: Boolean(llm.apiKey),
-            model: llm.model,
+            apiBase: cfg.llm.apiBase ?? null,
+            apiKeyConfigured: Boolean(cfg.llm.apiKey),
+            model: cfg.llm.model,
             note: "API key is optional. Local OpenAI-compatible servers usually need none.",
           },
-          daemon: process.env.BER_URL ?? "http://127.0.0.1:8787",
+          runtime: {
+            host: cfg.host,
+            port: cfg.port,
+            headless: cfg.headless,
+            dataDir: cfg.dataDir,
+            domains: cfg.domains,
+          },
+          daemon: process.env.BER_URL ?? `http://${cfg.host}:${cfg.port}`,
         },
         null,
         2,
@@ -59,17 +66,30 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (command === "init-config") {
+    const out = resolve(rest[0] ?? "ber.config.json");
+    const example = readFileSync(
+      resolve("examples/ber.config.example.json"),
+      "utf8",
+    );
+    writeFileSync(out, example);
+    console.log(`Wrote ${out}`);
+    return;
+  }
+
+  const cfg = getResolvedConfig();
   const runtime = createRuntimeFromEnv();
 
   try {
     switch (command) {
       case "daemon": {
-        const port = Number(process.env.BER_PORT ?? 8787);
-        const llm = resolveLlmEnv();
+        const port = Number(process.env.BER_PORT ?? cfg.port);
+        const host = process.env.BER_HOST ?? cfg.host;
         console.log(
-          `planner: ${llm.apiBase ? `LLM @ ${llm.apiBase} (${llm.model})` : "builtin (no LLM required)"}`,
+          `planner: ${cfg.llm.apiBase ? `LLM @ ${cfg.llm.apiBase} (${cfg.llm.model})` : "builtin (no LLM required)"}`,
         );
-        startDaemon({ runtime, port });
+        if (cfg.configPath) console.log(`config: ${cfg.configPath}`);
+        startDaemon({ runtime, port, host });
         process.on("SIGINT", async () => {
           await runtime.close();
           process.exit(0);
@@ -79,7 +99,7 @@ async function main(): Promise<void> {
       case "attach": {
         const startUrl = rest[0];
         const profile = rest.includes("--persistent")
-          ? defaultPersistentProfileDir()
+          ? defaultPersistentProfileDir(cfg.dataDir)
           : undefined;
         const state = await runtime.attach({
           startUrl,
@@ -135,8 +155,9 @@ function printHelp(): void {
 Open wrapper for AI browser agents. No vendor lock-in. API key optional.
 
 Commands:
-  daemon                     Start local HTTP daemon (default :8787)
-  doctor                     Show planner/wiring mode
+  daemon                     Start local HTTP daemon
+  doctor                     Show config/planner wiring
+  init-config [path]         Write ber.config.json from example
   attach [url] [--persistent]
   observe [url]
   run-plan <file> [url]
@@ -144,21 +165,16 @@ Commands:
   tools [outfile]            Print OpenAI-style tool schemas
   call <tool> <json>         Call daemon through tool bridge
 
-Env (all optional except when you want an external LLM planner):
-  BER_LLM_API_BASE           Any OpenAI-compatible base, e.g. http://127.0.0.1:11434/v1
-  BER_LLM_API_KEY            Optional. Omit for local/no-auth providers
-  BER_LLM_MODEL              Model name (default llama3.2)
-  BER_PORT / BER_URL / BER_DATA_DIR / BER_HEADLESS / BER_DOMAINS
+Config:
+  ber.config.json            Optional project config
+  BER_CONFIG                 Path override
+  BER_PROVIDER               Select providers.<name> from config
+  BER_LLM_API_BASE/KEY/MODEL Optional LLM wiring (key optional)
 
 Quick start (no API key):
+  npm run init-config
   npm run daemon
   npm run dev -- run-plan examples/sample-plan.json
-
-With local Ollama (no key):
-  BER_LLM_API_BASE=http://127.0.0.1:11434/v1 BER_LLM_MODEL=llama3.2 npm run daemon
-
-Wire any agent:
-  npm run dev -- tools examples/agent-tools.json
 `);
 }
 

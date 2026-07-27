@@ -8,14 +8,24 @@
         "parameters": {
           "type": "object",
           "properties": {
-            "startUrl": { "type": "string" },
-            "cdpUrl": { "type": "string" },
-            "userDataDir": { "type": "string" },
+            "startUrl": {
+              "type": "string"
+            },
+            "cdpUrl": {
+              "type": "string",
+              "description": "Connect to existing Chrome CDP endpoint"
+            },
+            "userDataDir": {
+              "type": "string",
+              "description": "Persistent Chrome profile directory"
+            },
             "profile": {
               "type": "string",
-              "enum": ["ephemeral", "persistent"]
+              "description": "Convenience profile key: ephemeral | persistent"
             },
-            "headless": { "type": "boolean" }
+            "headless": {
+              "type": "boolean"
+            }
           }
         }
       }
@@ -24,12 +34,16 @@
       "type": "function",
       "function": {
         "name": "browser_execute",
-        "description": "High-level intent. Runtime planner converts to actions and executes with recovery/memory.",
+        "description": "Give a high-level intent. Runtime planner converts it to actions and executes with recovery/memory.",
         "parameters": {
           "type": "object",
-          "required": ["intent"],
+          "required": [
+            "intent"
+          ],
           "properties": {
-            "intent": { "type": "string" }
+            "intent": {
+              "type": "string"
+            }
           }
         }
       }
@@ -41,10 +55,17 @@
         "description": "Execute an explicit deterministic browser plan JSON.",
         "parameters": {
           "type": "object",
-          "required": ["plan"],
+          "required": [
+            "plan"
+          ],
           "properties": {
-            "plan": { "type": "object" },
-            "resumeFromStep": { "type": "integer", "minimum": 0 }
+            "plan": {
+              "type": "object"
+            },
+            "resumeFromStep": {
+              "type": "integer",
+              "minimum": 0
+            }
           }
         }
       }
@@ -53,43 +74,56 @@
       "type": "function",
       "function": {
         "name": "browser_observe",
-        "description": "Compact semantic browser state for cheap reasoning (not screenshots).",
-        "parameters": { "type": "object", "properties": {} }
+        "description": "Return compact semantic browser state (not screenshots) for cheap reasoning.",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
       }
     },
     {
       "type": "function",
       "function": {
         "name": "browser_diff",
-        "description": "What changed since last observation.",
-        "parameters": { "type": "object", "properties": {} }
+        "description": "Return what changed since the last observation.",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
       }
     },
     {
       "type": "function",
       "function": {
         "name": "browser_resume",
-        "description": "Resume last failed plan.",
-        "parameters": { "type": "object", "properties": {} }
+        "description": "Resume the last failed plan from its failure step.",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
       }
     },
     {
       "type": "function",
       "function": {
         "name": "browser_status",
-        "description": "Runtime status and memory counters.",
-        "parameters": { "type": "object", "properties": {} }
+        "description": "Runtime status including memory engine and experience counts.",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_tabs",
+        "description": "List open browser tabs managed by the runtime.",
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
       }
     }
-  ],
-  "endpoints": {
-    "base": "http://127.0.0.1:8787",
-    "attach": "POST /attach",
-    "execute": "POST /execute",
-    "run": "POST /run",
-    "observe": "GET /observe",
-    "diff": "GET /diff",
-    "resume": "POST /resume",
-    "status": "GET /status"
-  }
+  ]
 }

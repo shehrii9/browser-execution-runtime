@@ -1,6 +1,8 @@
 export { BrowserRuntime } from "./runtime.js";
 export type { RuntimeOptions } from "./runtime.js";
-export { createRuntimeFromEnv } from "./runtimeFactory.js";
+export { createRuntimeFromEnv, getResolvedConfig } from "./runtimeFactory.js";
+export { loadBerConfig } from "./config.js";
+export type { BerConfig, ResolvedRuntimeConfig } from "./config.js";
 export { startDaemon } from "./api/server.js";
 export { createPolicy } from "./policy.js";
 export { ExperienceStore } from "./experience/store.js";

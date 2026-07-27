@@ -93,3 +93,39 @@ npm run dev -- doctor
 | `BER_HERMES_*` | no | Legacy aliases for Hermes users |
 
 See `examples/ber.config.example.json` for provider examples.
+
+## Project config file
+
+```bash
+npm run init-config   # writes ber.config.json
+npm run doctor        # shows resolved wiring
+```
+
+`ber.config.json` is optional. Environment variables always win. `apiKey` may be `null` or `"env:MY_VAR"`.
+
+## Language wrappers
+
+### JavaScript tool bridge
+
+```bash
+npm run daemon
+node examples/integrations/openai-tools.mjs
+```
+
+### curl
+
+```bash
+npm run daemon
+bash examples/integrations/curl-demo.sh
+```
+
+### Python
+
+```bash
+npm run daemon
+PYTHONPATH=sdk/python python - <<'PY'
+from browser_execution_runtime import BrowserRuntimeClient
+client = BrowserRuntimeClient()
+print(client.health())
+PY
+```

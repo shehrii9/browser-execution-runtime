@@ -20,6 +20,7 @@
     "start": "node dist/cli.js",
     "daemon": "tsx src/cli.ts daemon",
     "doctor": "tsx src/cli.ts doctor",
+    "init-config": "tsx src/cli.ts init-config",
     "tools": "tsx src/cli.ts tools",
     "hermes-tools": "tsx src/cli.ts tools",
     "bench:replay": "tsx benchmarks/experience-replay.ts",

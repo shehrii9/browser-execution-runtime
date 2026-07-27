@@ -1,25 +1,50 @@
 import { resolve } from "node:path";
+import { loadBerConfig } from "./config.js";
 import { createComputerUseFallbackFromEnv } from "./fallback/computerUse.js";
 import {
   LlmComputerUseFallback,
-  createLlmPlannerFromEnv,
+  LlmPlanner,
 } from "./planner/llm.js";
 import { BuiltinPlanner, NoopComputerUseFallback } from "./planner/engine.js";
 import { BrowserRuntime, type RuntimeOptions } from "./runtime.js";
 
 /**
- * Build a runtime from environment.
- * Works with:
- * - no LLM at all (builtin planner + explicit plans)
- * - any OpenAI-compatible local/remote endpoint
- * - optional API key (not required for many local servers)
+ * Build a runtime from optional ber.config.json + environment.
+ * Works with no LLM, local open models, or any OpenAI-compatible provider.
+ * API key is never required by this runtime itself.
  */
 export function createRuntimeFromEnv(
-  overrides: RuntimeOptions = {},
+  overrides: RuntimeOptions & { configPath?: string; cwd?: string } = {},
 ): BrowserRuntime {
-  const llm = createLlmPlannerFromEnv();
-  const planner = overrides.planner ?? llm ?? new BuiltinPlanner();
+  const cfg = loadBerConfig({
+    configPath: overrides.configPath,
+    cwd: overrides.cwd,
+  });
 
+  // Expose resolved LLM settings to existing env-based helpers.
+  if (cfg.llm.apiBase && !process.env.BER_LLM_API_BASE && !process.env.BER_HERMES_API_BASE) {
+    process.env.BER_LLM_API_BASE = cfg.llm.apiBase;
+  }
+  if (cfg.llm.apiKey && !process.env.BER_LLM_API_KEY && !process.env.OPENAI_API_KEY) {
+    process.env.BER_LLM_API_KEY = cfg.llm.apiKey;
+  }
+  if (cfg.llm.model && !process.env.BER_LLM_MODEL && !process.env.BER_HERMES_MODEL) {
+    process.env.BER_LLM_MODEL = cfg.llm.model;
+  }
+  if (cfg.llm.visionModel && !process.env.BER_COMPUTER_USE_MODEL) {
+    process.env.BER_COMPUTER_USE_MODEL = cfg.llm.visionModel;
+  }
+
+  const llm = cfg.llm.apiBase
+    ? new LlmPlanner({
+        apiBase: cfg.llm.apiBase,
+        apiKey: cfg.llm.apiKey,
+        model: cfg.llm.model,
+        timeoutMs: cfg.llm.timeoutMs,
+      })
+    : null;
+
+  const planner = overrides.planner ?? llm ?? new BuiltinPlanner();
   const envFallback = createComputerUseFallbackFromEnv();
   const computerUseFallback =
     overrides.computerUseFallback ??
@@ -27,18 +52,19 @@ export function createRuntimeFromEnv(
     (llm ? new LlmComputerUseFallback(llm) : new NoopComputerUseFallback());
 
   return new BrowserRuntime({
-    dataDir: overrides.dataDir ?? resolve(process.env.BER_DATA_DIR ?? "data"),
+    dataDir: overrides.dataDir ?? resolve(cfg.dataDir),
     policy: {
-      headless: process.env.BER_HEADLESS !== "0",
-      allowPurchase: process.env.BER_ALLOW_PURCHASE === "1",
-      domains: (process.env.BER_DOMAINS ?? "")
-        .split(",")
-        .map((d) => d.trim())
-        .filter(Boolean),
-      allowNavigationOutsideAllowlist: !process.env.BER_DOMAINS,
+      headless: cfg.headless,
+      allowPurchase: cfg.allowPurchase,
+      domains: cfg.domains,
+      allowNavigationOutsideAllowlist: cfg.domains.length === 0,
       ...overrides.policy,
     },
     planner,
     computerUseFallback,
   });
+}
+
+export function getResolvedConfig(options?: { configPath?: string; cwd?: string }) {
+  return loadBerConfig(options);
 }

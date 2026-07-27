@@ -43,9 +43,16 @@ See [`INTEGRATING.md`](./INTEGRATING.md) for bring-your-own-model wiring.
 npm install
 npx playwright install chromium
 npm test
+npm run init-config
+npm run doctor
 npm run daemon
-npm run dev -- doctor
 npm run dev -- run-plan examples/sample-plan.json
+```
+
+Python client (optional):
+
+```bash
+PYTHONPATH=sdk/python python -c 'from browser_execution_runtime import BrowserRuntimeClient; print(BrowserRuntimeClient().health())'
 ```
 
 ## Wire any agent
