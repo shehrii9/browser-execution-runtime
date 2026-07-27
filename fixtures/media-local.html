@@ -9,7 +9,16 @@
   </head>
   <body>
     <h1>Demo Watch</h1>
+    <div id="ad" style="position:fixed;inset:0;background:#000c;color:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;z-index:5">
+      <p>Advertisement</p>
+      <button type="button">Skip Ad</button>
+    </div>
     <video id="player" controls></video>
-    <button type="button">Skip Ad</button>
+    <script>
+      document.querySelector("#ad button").onclick = () => {
+        document.getElementById("ad").remove();
+        document.body.insertAdjacentHTML("beforeend", "<p id=playing>Now playing</p>");
+      };
+    </script>
   </body>
 </html>

@@ -224,7 +224,8 @@ npm run daemon                 # daemon only (after setup)
 npm run doctor                 # show resolved config / planner mode
 npm run init-config            # write ber.config.json
 npm run tools                  # print OpenAI-style tool schemas
-npm run bench:replay           # cookie-banner replay benchmark
+npm run bench:replay           # replay benchmarks (all scenarios)
+npm run bench:replay:cookie    # cookie-shop only
 
 npm run dev -- observe https://example.com
 npm run dev -- execute "open https://example.com"

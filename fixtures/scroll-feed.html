@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Infinite Feed</title>
+    <style>
+      body { font-family: sans-serif; margin: 0; padding: 1rem; }
+      .item { padding: 2rem 1rem; border-bottom: 1px solid #ddd; min-height: 120px; }
+    </style>
+  </head>
+  <body>
+    <h1>Feed</h1>
+    <div id="feed"></div>
+    <script>
+      const feed = document.getElementById("feed");
+      let count = 0;
+      function appendItem() {
+        count += 1;
+        const el = document.createElement("div");
+        el.className = "item";
+        el.textContent = "Item " + count;
+        if (count === 42) el.id = "target-item";
+        feed.appendChild(el);
+      }
+      for (let i = 0; i < 6; i++) appendItem();
+      function maybeLoadMore() {
+        const last = feed.lastElementChild;
+        if (!last) return;
+        const rect = last.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 80 && count < 50) {
+          appendItem();
+        }
+      }
+      window.addEventListener("scroll", maybeLoadMore, { passive: true });
+      window.addEventListener("load", maybeLoadMore);
+    </script>
+  </body>
+</html>
