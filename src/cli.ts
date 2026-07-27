@@ -5,6 +5,7 @@ import { createDefaultBridge } from "./agent/bridge.js";
 import { AGENT_TOOLS } from "./agent/tools.js";
 import { startDaemon } from "./api/server.js";
 import { defaultPersistentProfileDir } from "./browser/profiles.js";
+import { runBerMcpStdio } from "./mcp/server.js";
 import { getResolvedConfig, createRuntimeFromEnv } from "./runtimeFactory.js";
 import { PlanSchema } from "./types.js";
 
@@ -21,6 +22,11 @@ async function main(): Promise<void> {
     const payload = JSON.stringify({ tools: AGENT_TOOLS }, null, 2);
     if (out) writeFileSync(out, `${payload}\n`);
     else console.log(payload);
+    return;
+  }
+
+  if (command === "mcp") {
+    await runBerMcpStdio({ baseUrl: process.env.BER_URL });
     return;
   }
 
@@ -164,6 +170,7 @@ Commands:
   execute "<intent>"
   tools [outfile]            Print OpenAI-style tool schemas
   call <tool> <json>         Call daemon through tool bridge
+  mcp                        MCP stdio server (browser_* tools for Cursor, etc.)
 
 Config:
   ber.config.json            Optional project config

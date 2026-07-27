@@ -66,6 +66,7 @@ This project is a **local execution wrapper**:
 - **Event bus** — step/recovery/run events via `GET /events` or SSE stream
 - **Iframe targets** — `frame` / `frameUrl` for consent CMPs and nested UI
 - **Open tool bridge** — OpenAI-style `browser_*` tools any agent can register
+- **MCP server** — `npm run mcp` / `ber mcp` (stdio) for Cursor and other MCP clients
 - **Optional LLM planner** — any OpenAI-compatible endpoint; key optional
 - **Debug Chrome extension** — attach-only bridge (no AI inside)
 - **Safety policy** — domain allowlist, purchase blocking
@@ -175,6 +176,7 @@ npm run tools -- examples/agent-tools.json
 
 - Repo rule: [`.cursor/rules/ber-runtime.mdc`](./.cursor/rules/ber-runtime.mdc)
 - Copy/paste snippet: [`examples/integrations/cursor-rules.md`](./examples/integrations/cursor-rules.md)
+- MCP server: [`examples/integrations/mcp.md`](./examples/integrations/mcp.md) (`npm run mcp` while daemon is running)
 
 ### OpenAI Codex
 
@@ -224,6 +226,7 @@ npm run daemon                 # daemon only (after setup)
 npm run doctor                 # show resolved config / planner mode
 npm run init-config            # write ber.config.json
 npm run tools                  # print OpenAI-style tool schemas
+npm run mcp                    # MCP stdio server (needs daemon)
 npm run bench:replay           # cookie-banner replay benchmark
 
 npm run dev -- observe https://example.com

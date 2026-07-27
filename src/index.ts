@@ -46,6 +46,8 @@ export {
   CascadingComputerUseFallback,
   createComputerUseFallbackFromEnv,
 } from "./fallback/computerUse.js";
+export { createBerMcpServer, runBerMcpStdio } from "./mcp/server.js";
+export type { BerMcpServerOptions } from "./mcp/server.js";
 export { RuntimeClient } from "./agent/client.js";
 export { ToolBridge, createDefaultBridge } from "./agent/bridge.js";
 export { AGENT_TOOLS } from "./agent/tools.js";
