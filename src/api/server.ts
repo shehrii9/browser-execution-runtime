@@ -85,6 +85,40 @@ export function startDaemon(options: DaemonOptions): Server {
         return sendJson(res, 200, runtime.metricsSnapshot());
       }
 
+      if (method === "GET" && path === "/events") {
+        const afterId = url.searchParams.get("afterId");
+        const limit = url.searchParams.get("limit");
+        const type = url.searchParams.get("type") ?? undefined;
+        return sendJson(res, 200, {
+          events: runtime.listEvents({
+            afterId: afterId ? Number(afterId) : undefined,
+            limit: limit ? Number(limit) : undefined,
+            type: type ?? undefined,
+          }),
+        });
+      }
+
+      if (method === "GET" && path === "/events/stream") {
+        res.writeHead(200, {
+          "content-type": "text/event-stream; charset=utf-8",
+          "cache-control": "no-cache, no-transform",
+          connection: "keep-alive",
+          "access-control-allow-origin": "*",
+        });
+        res.write(`: ber-events\n\n`);
+        const unsubscribe = runtime.events.on((event) => {
+          res.write(`id: ${event.id}\ndata: ${JSON.stringify(event)}\n\n`);
+        });
+        const heartbeat = setInterval(() => {
+          res.write(`: ping\n\n`);
+        }, 15000);
+        req.on("close", () => {
+          clearInterval(heartbeat);
+          unsubscribe();
+        });
+        return;
+      }
+
       if (method === "POST" && path === "/attach") {
         const body = AttachBodySchema.parse(await readJson(req));
         const userDataDir =

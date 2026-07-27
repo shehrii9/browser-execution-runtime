@@ -1,6 +1,7 @@
 """Thin open client for browser-execution-runtime daemon.
 
 No API key required. Works with any agent/script.
+Parity with the TypeScript RuntimeClient / daemon HTTP API.
 """
 
 from __future__ import annotations
@@ -24,11 +25,37 @@ class BrowserRuntimeClient:
     def observe(self) -> dict[str, Any]:
         return self._request("GET", "/observe")
 
+    def diff(self) -> dict[str, Any]:
+        return self._request("GET", "/diff")
+
+    def experiences(self) -> dict[str, Any]:
+        return self._request("GET", "/experiences")
+
+    def metrics(self) -> dict[str, Any]:
+        return self._request("GET", "/metrics")
+
     def tabs(self) -> dict[str, Any]:
         return self._request("GET", "/tabs")
 
     def plugins(self) -> dict[str, Any]:
         return self._request("GET", "/plugins")
+
+    def events(
+        self,
+        *,
+        after_id: Optional[int] = None,
+        limit: Optional[int] = None,
+        type: Optional[str] = None,
+    ) -> dict[str, Any]:
+        query: list[str] = []
+        if after_id is not None:
+            query.append(f"afterId={after_id}")
+        if limit is not None:
+            query.append(f"limit={limit}")
+        if type is not None:
+            query.append(f"type={type}")
+        path = "/events" + (("?" + "&".join(query)) if query else "")
+        return self._request("GET", path)
 
     def attach(
         self,
@@ -52,6 +79,9 @@ class BrowserRuntimeClient:
             body["headless"] = headless
         return self._request("POST", "/attach", body)
 
+    def act(self, action: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/act", {"action": action})
+
     def execute(self, intent: str) -> dict[str, Any]:
         return self._request("POST", "/execute", {"intent": intent})
 
@@ -63,6 +93,30 @@ class BrowserRuntimeClient:
 
     def resume(self) -> dict[str, Any]:
         return self._request("POST", "/resume", {})
+
+    def new_tab(self, url: Optional[str] = None) -> dict[str, Any]:
+        body: dict[str, Any] = {}
+        if url is not None:
+            body["url"] = url
+        return self._request("POST", "/tabs/new", body)
+
+    def switch_tab(self, index: int) -> dict[str, Any]:
+        return self._request("POST", "/tabs/switch", {"index": index})
+
+    def close_tab(self, index: Optional[int] = None) -> dict[str, Any]:
+        body: dict[str, Any] = {}
+        if index is not None:
+            body["index"] = index
+        return self._request("POST", "/tabs/close", body)
+
+    def set_policy(self, policy: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/policy", policy)
+
+    def remember(self, body: dict[str, Any]) -> dict[str, Any]:
+        return self._request("POST", "/remember", body)
+
+    def close(self) -> dict[str, Any]:
+        return self._request("POST", "/close", {})
 
     def call_tool(self, name: str, arguments: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """Map common tool names to daemon endpoints for agent wrappers."""
@@ -81,10 +135,18 @@ class BrowserRuntimeClient:
             return self.run(args["plan"], args.get("resumeFromStep"))
         if name == "browser_observe":
             return self.observe()
+        if name == "browser_diff":
+            return self.diff()
         if name == "browser_status":
             return self.status()
         if name == "browser_tabs":
             return self.tabs()
+        if name == "browser_events":
+            return self.events(
+                after_id=args.get("afterId"),
+                limit=args.get("limit"),
+                type=args.get("type"),
+            )
         if name == "browser_resume":
             return self.resume()
         raise ValueError(f"Unknown tool: {name}")

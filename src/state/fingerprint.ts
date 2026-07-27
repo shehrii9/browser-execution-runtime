@@ -26,6 +26,9 @@ export function buildSignals(state: Omit<SemanticState, "fingerprint" | "observe
   if (state.nodes.some((n) => n.role === "video" || n.tag === "video")) {
     signals.add("video_player");
   }
+  if (state.nodes.some((n) => n.tag === "iframe" || n.role === "iframe")) {
+    signals.add("has_iframe");
+  }
   if (state.pageHint === "watch" || state.pageHint === "results") {
     signals.add(`hint:${state.pageHint}`);
   }

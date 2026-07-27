@@ -94,6 +94,22 @@ export const AGENT_TOOLS = [
       parameters: { type: "object", properties: {} },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "browser_events",
+      description:
+        "List recent runtime events (attach, steps, recovery, run_start/end). Useful instead of screenshots.",
+      parameters: {
+        type: "object",
+        properties: {
+          afterId: { type: "integer", minimum: 0 },
+          limit: { type: "integer", minimum: 1 },
+          type: { type: "string" },
+        },
+      },
+    },
+  },
 ] as const;
 
 export type AgentToolName = (typeof AGENT_TOOLS)[number]["function"]["name"];

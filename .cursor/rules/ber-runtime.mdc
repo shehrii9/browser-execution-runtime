@@ -19,7 +19,7 @@ When the user asks to control a browser, open pages, click, type, extract web co
 2. `browser_attach` with `startUrl` or `cdpUrl`
 3. Prefer `browser_run_plan` with an explicit JSON plan when steps are clear
 4. Use `browser_execute` for high-level intents when a planner is configured
-5. Use `browser_observe` / `browser_diff` for cheap state (not screenshots)
+5. Use `browser_observe` / `browser_diff` / `browser_events` for cheap state (not screenshots)
 6. On failure: `browser_resume` or recover, then continue
 7. Only fall back to computer-use/vision if BER recovery fails repeatedly
 
@@ -33,6 +33,7 @@ When the user asks to control a browser, open pages, click, type, extract web co
 - `browser_resume` → `POST /resume`
 - `browser_status` → `GET /status`
 - `browser_tabs` → `GET /tabs`
+- `browser_events` → `GET /events`
 
 ## CLI helpers
 

@@ -47,6 +47,19 @@ export class RuntimeClient {
     return this.get("/plugins");
   }
 
+  events(query: {
+    afterId?: number;
+    limit?: number;
+    type?: string;
+  } = {}): Promise<unknown> {
+    const params = new URLSearchParams();
+    if (typeof query.afterId === "number") params.set("afterId", String(query.afterId));
+    if (typeof query.limit === "number") params.set("limit", String(query.limit));
+    if (query.type) params.set("type", query.type);
+    const qs = params.toString();
+    return this.get(`/events${qs ? `?${qs}` : ""}`);
+  }
+
   attach(body: {
     startUrl?: string;
     cdpUrl?: string;
@@ -72,12 +85,28 @@ export class RuntimeClient {
     return this.post("/resume", {});
   }
 
+  newTab(url?: string): Promise<unknown> {
+    return this.post("/tabs/new", url ? { url } : {});
+  }
+
+  switchTab(index: number): Promise<unknown> {
+    return this.post("/tabs/switch", { index });
+  }
+
+  closeTab(index?: number): Promise<unknown> {
+    return this.post("/tabs/close", index === undefined ? {} : { index });
+  }
+
   setPolicy(policy: Partial<Policy>): Promise<unknown> {
     return this.post("/policy", policy);
   }
 
   remember(body: unknown): Promise<unknown> {
     return this.post("/remember", body);
+  }
+
+  close(): Promise<unknown> {
+    return this.post("/close", {});
   }
 
   private async get<T>(path: string): Promise<T> {

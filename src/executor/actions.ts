@@ -174,27 +174,43 @@ export class ActionExecutor {
 }
 
 async function dismissCommonOverlays(page: Page): Promise<void> {
-  const candidates = [
-    page.getByRole("button", { name: /accept all/i }),
-    page.getByRole("button", { name: /accept/i }),
-    page.getByRole("button", { name: /agree/i }),
-    page.getByRole("button", { name: /got it/i }),
-    page.getByRole("button", { name: /close/i }),
-    page.getByRole("button", { name: /no thanks/i }),
-    page.getByRole("button", { name: /reject all/i }),
-    page.getByRole("button", { name: /skip ad/i }),
-    page.getByRole("button", { name: /^skip$/i }),
-    page.getByText(/skip ad/i),
+  const names = [
+    /accept all/i,
+    /accept/i,
+    /agree/i,
+    /got it/i,
+    /close/i,
+    /no thanks/i,
+    /reject all/i,
+    /skip ad/i,
+    /^skip$/i,
   ];
 
-  for (const candidate of candidates) {
+  const scopes = [page as Page | ReturnType<Page["frameLocator"]>, page.frameLocator("iframe")];
+  // Also try common consent iframe patterns.
+  scopes.push(page.frameLocator("iframe[id*='consent' i]"));
+  scopes.push(page.frameLocator("iframe[src*='consent' i]"));
+  scopes.push(page.frameLocator("iframe[title*='consent' i]"));
+
+  for (const scope of scopes) {
+    for (const name of names) {
+      try {
+        const candidate = scope.getByRole("button", { name });
+        if (await candidate.first().isVisible({ timeout: 250 })) {
+          await candidate.first().click({ timeout: 1000 });
+          await page.waitForTimeout(150);
+        }
+      } catch {
+        // keep trying
+      }
+    }
     try {
-      if (await candidate.first().isVisible({ timeout: 400 })) {
-        await candidate.first().click({ timeout: 1000 });
-        await page.waitForTimeout(200);
+      const byText = scope.getByText(/skip ad/i);
+      if (await byText.first().isVisible({ timeout: 200 })) {
+        await byText.first().click({ timeout: 1000 });
       }
     } catch {
-      // keep trying other candidates
+      // ignore
     }
   }
 

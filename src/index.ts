@@ -14,6 +14,8 @@ export {
   createEmbedderFromEnv,
 } from "./memory/embedder.js";
 export { PluginRegistry, DEFAULT_PLUGINS } from "./plugins/registry.js";
+export { EventBus } from "./events/bus.js";
+export type { RuntimeEvent, RuntimeEventType } from "./events/bus.js";
 export { youtubePlugin } from "./plugins/youtube.js";
 export { settlePage } from "./browser/settle.js";
 export { cookieConsentPlugin } from "./plugins/cookieConsent.js";
