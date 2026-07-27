@@ -5,10 +5,6 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
     exclude: ["tests/browser-smoke.test.ts"],
-<<<<<<< Updated upstream
-    fileParallelism: false,
-    maxWorkers: 1,
-=======
     pool: "forks",
     poolOptions: {
       forks: {
@@ -16,6 +12,5 @@ export default defineConfig({
       },
     },
     fileParallelism: false,
->>>>>>> Stashed changes
   },
 });
