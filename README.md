@@ -372,6 +372,7 @@ See [`examples/ber.config.example.json`](./examples/ber.config.example.json).
 | `BER_EMBEDDINGS_API_BASE` | no | Optional neural embeddings endpoint |
 | `BER_EMBEDDINGS_MODEL` | no | Embeddings model id |
 | `BER_EMBEDDINGS=hash` | no | Force local hashing embeddings |
+| `BER_RUST_CORE=1` | no | Prefer `ber-core` on PATH for fingerprints + L3 hashing embeddings |
 | `BER_HERMES_*` | no | Legacy aliases |
 
 ---

@@ -46,4 +46,8 @@ jobs:
       - name: Test ber-core
         run: cargo test -p ber-core
       - name: Build ber-core
-        run: cargo build -p ber-core
+        run: cargo build -p ber-core --release
+      - name: Node rust embedding bridge
+        run: |
+          export PATH="$PWD/target/release:$PATH"
+          BER_RUST_CORE=1 npm run test -- tests/rust-embeddings.test.ts

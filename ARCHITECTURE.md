@@ -18,7 +18,7 @@ We are **not** dumping full DOM/HTML/chat history into JSON files.
 ### Is memory implemented in Rust?
 **Not for L2 storage.** Experience memory stays in TypeScript + SQLite.
 
-**Experimental:** `crates/ber-core` provides fingerprint + hashing embeddings + CLI. Set `BER_RUST_CORE=1` to prefer Rust fingerprints when `ber-core` is on `PATH`. The execution kernel remains TypeScript.
+**Experimental:** `crates/ber-core` provides fingerprint + hashing embeddings + CLI. Set `BER_RUST_CORE=1` to prefer Rust fingerprints and L3 `local_hashing_rust` embeddings when `ber-core` is on `PATH`. The execution kernel remains TypeScript.
 
 Current stack:
 - **TypeScript** runtime
@@ -59,7 +59,7 @@ Current stack:
 | Event bus | Done (`EventBus`, `GET /events`, SSE `/events/stream`) |
 | Chrome extension bridge | Done (attach-only debug extension) |
 | Optional neural embeddings | Done (`NeuralEmbedder`, hash fallback) |
-| Rust core | Scaffolded (`crates/ber-core`: fingerprint + hashing embed + CLI; TS still default) |
+| Rust core | Scaffolded (`crates/ber-core`: fingerprint + hashing embed + CLI; `BER_RUST_CORE=1` → Rust fingerprints + L3 embeddings) |
 | Closed-shadow pierce | Done (CDP `DOM.getDocument` pierce during observe; disable with `BER_PIERCE_SHADOW=0`) |
 | Publish automation | Done (tag-triggered Release workflow for npm/PyPI/`ber-core` artifact) |
 | Python SDK | Done (HTTP client parity with daemon: diff/act/tabs/events/policy/…) |
@@ -104,7 +104,7 @@ Recovery policy:
 
 **Rust core (experimental)**
 - Crate: `crates/ber-core` — fingerprint + hashing embeddings + `ber-core` CLI
-- TypeScript remains the execution kernel; set `BER_RUST_CORE=1` to try Rust fingerprints when the binary is on `PATH`
+- TypeScript remains the execution kernel; set `BER_RUST_CORE=1` to try Rust fingerprints and L3 hashing embeddings when the binary is on `PATH`
 - CI runs `cargo test -p ber-core`
 
 **Media sites (video/audio)**
