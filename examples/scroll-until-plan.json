@@ -1,0 +1,22 @@
+{
+  "goal": "Scroll a feed until enough list items load",
+  "steps": [
+    {
+      "action": {
+        "type": "navigate",
+        "url": "https://example.com"
+      }
+    },
+    {
+      "action": {
+        "type": "scroll",
+        "direction": "down",
+        "amount": 600,
+        "untilCss": "a",
+        "untilCountAtLeast": 1,
+        "maxScrolls": 3,
+        "timeoutMs": 5000
+      }
+    }
+  ]
+}

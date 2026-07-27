@@ -1,6 +1,6 @@
 {
   "name": "browser-execution-runtime",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Open provider-agnostic browser execution runtime for AI agents. No API key required.",
   "type": "module",
   "main": "dist/index.js",
@@ -14,9 +14,11 @@
     "LICENSE",
     "INTEGRATING.md",
     "PUBLISHING.md",
+    "ARCHITECTURE.md",
     "examples",
     "extension",
-    "sdk/python"
+    "sdk/python",
+    "scripts"
   ],
   "exports": {
     ".": {
@@ -37,8 +39,17 @@
     "bench:replay": "tsx benchmarks/experience-replay.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepublishOnly": "npm test && npm run build"
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "npm test && npm run build && npm run pack:check"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shehrii9/browser-execution-runtime.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shehrii9/browser-execution-runtime/issues"
+  },
+  "homepage": "https://github.com/shehrii9/browser-execution-runtime#readme",
   "keywords": [
     "browser",
     "cdp",

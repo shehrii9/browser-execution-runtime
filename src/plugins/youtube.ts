@@ -110,6 +110,19 @@ export const youtubePlugin: SitePlugin = {
         target: { css: "ytd-player, #movie_player, video" },
         timeoutMs: 12000,
       },
+      { type: "media", command: "skip_ad" },
+      { type: "media", command: "play" },
+    ],
+    load_more_results: [
+      {
+        type: "scroll",
+        direction: "down",
+        amount: 1200,
+        untilCss: "ytd-video-renderer, ytd-rich-item-renderer",
+        untilCountAtLeast: 12,
+        maxScrolls: 10,
+        timeoutMs: 25000,
+      },
     ],
   },
 };

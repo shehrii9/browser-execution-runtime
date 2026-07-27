@@ -57,6 +57,16 @@ export const ActionSchema = z.discriminatedUnion("type", [
     amount: z.number().int().positive().default(800),
     /** After scrolling, wait for late-loaded content. */
     settle: z.boolean().optional(),
+    /** Keep scrolling until this text is visible. */
+    untilText: z.string().optional(),
+    /** Keep scrolling until this CSS selector matches. */
+    untilCss: z.string().optional(),
+    /** With untilCss: require at least N matches (infinite-scroll lists). */
+    untilCountAtLeast: z.number().int().positive().optional(),
+    /** Max wheel steps when using until*. Default 8. */
+    maxScrolls: z.number().int().positive().optional(),
+    /** Overall timeout for until* scrolling. */
+    timeoutMs: z.number().int().positive().optional(),
   }),
   z.object({
     type: z.literal("extract"),
@@ -70,6 +80,19 @@ export const ActionSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("dismiss_overlays"),
+  }),
+  /** Lightweight media controls for video sites (YouTube-like). No DRM scrubbing. */
+  z.object({
+    type: z.literal("media"),
+    command: z.enum([
+      "play",
+      "pause",
+      "toggle",
+      "mute",
+      "unmute",
+      "skip_ad",
+      "fullscreen",
+    ]),
   }),
   z.object({
     type: z.literal("observe"),

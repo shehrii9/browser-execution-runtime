@@ -51,7 +51,9 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the ag
 | Site plugins | Done (cookie/auth/github/google/amazon/youtube) |
 | Multi-tab | Done (new/switch/close tab actions + API) |
 | Dynamic page settle (SPA/AJAX) | Done (`settlePage`, wait.settle, post navigate/click) |
-| YouTube-like handling | Done (plugin + watch/results hints + skip-ad recovery) |
+| Infinite scroll waits | Done (`scroll` + `untilText` / `untilCss` / `untilCountAtLeast`) |
+| YouTube-like handling | Done (plugin + watch/results hints + media play/skip_ad) |
+| Media actions | Done (`media` play/pause/mute/skip_ad/fullscreen) |
 | One-command startup | Done (`npm start`) |
 | Event bus | Done (`EventBus`, `GET /events`, SSE `/events/stream`) |
 | Chrome extension bridge | Done (attach-only debug extension) |
