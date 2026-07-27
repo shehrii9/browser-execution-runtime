@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { SemanticState } from "../types.js";
 import { MEDIA_SITE_DOMAINS } from "../plugins/mediaSites.js";
+import { fingerprintViaRust } from "../memory/rustBridge.js";
 
 export function buildSignals(state: Omit<SemanticState, "fingerprint" | "observedAt">): string[] {
   const signals = new Set<string>();
@@ -62,6 +63,17 @@ export function fingerprintFromParts(parts: {
   const dialogs = [...parts.dialogs].map((d) => `d:${normalizeToken(d)}`).sort().slice(0, 8);
   const buttons = [...parts.buttons].map((b) => `b:${normalizeToken(b)}`).sort().slice(0, 12);
   const material = [parts.domain, parts.pageHint, ...signals, ...dialogs, ...buttons].join("|");
+
+  // Optional Rust core (experimental): BER_RUST_CORE=1 + ber-core on PATH.
+  const viaRust = fingerprintViaRust({
+    domain: parts.domain,
+    pageHint: parts.pageHint,
+    signals,
+    buttons: [...parts.buttons].map(normalizeToken),
+    dialogs: [...parts.dialogs].map(normalizeToken),
+  });
+  if (viaRust) return viaRust;
+
   return createHash("sha256").update(material).digest("hex").slice(0, 16);
 }
 

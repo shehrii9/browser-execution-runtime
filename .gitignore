@@ -9,6 +9,8 @@ test-results/
 .env
 .coverage/
 ber.config.json
+*.tgz
+target/
 
 __pycache__/
 *.py[cod]

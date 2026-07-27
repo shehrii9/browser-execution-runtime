@@ -5,6 +5,7 @@ import {
   fingerprintFromParts,
   pageHintFromUrl,
 } from "./fingerprint.js";
+import { collectPiercedInteractiveNodes } from "./pierce.js";
 
 interface RawNode {
   role: string;
@@ -193,6 +194,24 @@ export async function observePage(page: Page): Promise<SemanticState> {
     }
   }
 
+  // Closed-shadow best-effort (CDP pierce). Off with BER_PIERCE_SHADOW=0.
+  const pierceEnabled = process.env.BER_PIERCE_SHADOW !== "0";
+  let piercedCount = 0;
+  if (pierceEnabled && rawNodes.length < 160) {
+    const pierced = await collectPiercedInteractiveNodes(page, 80);
+    const seen = new Set(
+      rawNodes.map((n) => `${n.role}|${n.name}|${n.tag}`.toLowerCase()),
+    );
+    for (const node of pierced) {
+      const key = `${node.role}|${node.name}|${node.tag}`.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      rawNodes.push(node);
+      if (node.pierced) piercedCount += 1;
+      if (rawNodes.length >= 160) break;
+    }
+  }
+
   const nodes: SemanticNode[] = rawNodes.map((n, index) => ({
     id: `n${index}`,
     role: n.role,
@@ -249,6 +268,9 @@ export async function observePage(page: Page): Promise<SemanticState> {
   if (frameCount > 0) {
     signalSet.add("has_iframe");
     signalSet.add(`frames:${Math.min(frameCount, 20)}`);
+  }
+  if (piercedCount > 0) {
+    signalSet.add("shadow_pierced");
   }
   const signals = [...signalSet].sort();
   const fingerprint = fingerprintFromParts({

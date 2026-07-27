@@ -19,6 +19,8 @@ export type { RuntimeEvent, RuntimeEventType } from "./events/bus.js";
 export { mediaSitesPlugin, MEDIA_SITE_DOMAINS, youtubePlugin } from "./plugins/mediaSites.js";
 export { contentSitesPlugin } from "./plugins/contentSites.js";
 export { settlePage } from "./browser/settle.js";
+export { collectPiercedInteractiveNodes } from "./state/pierce.js";
+export { rustCoreEnabled, rustCoreAvailable } from "./memory/rustBridge.js";
 export { cookieConsentPlugin } from "./plugins/cookieConsent.js";
 export { githubPlugin } from "./plugins/github.js";
 export { googlePlugin } from "./plugins/google.js";
