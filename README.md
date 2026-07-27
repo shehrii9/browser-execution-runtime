@@ -4,6 +4,7 @@
 
 Any agent can wrap it. No vendor lock-in. **No API key required.**
 
+[![CI](https://github.com/shehrii9/browser-execution-runtime/actions/workflows/ci.yml/badge.svg)](https://github.com/shehrii9/browser-execution-runtime/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](./package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](./tsconfig.json)
@@ -482,6 +483,10 @@ browser-execution-runtime/
 ```
 
 ---
+
+## Contributing
+
+We welcome issues and pull requests. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for setup, test commands, and high-impact areas (site plugins, recovery, examples, Python SDK, Rust core). Please follow the [`CODE_OF_CONDUCT`](./CODE_OF_CONDUCT.md).
 
 ## Development
 

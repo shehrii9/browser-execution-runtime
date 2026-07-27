@@ -1,0 +1,41 @@
+name: Bug report
+description: Something broke or behaved unexpectedly
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please redact API keys, cookies, and personal URLs.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you expect vs what actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. npm start
+        2. curl ...
+        3. See error
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: e.g. 0.2.1 or git SHA
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: OS, Node version, headless vs headed, BER_* env if relevant
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack trace
+      render: shell
