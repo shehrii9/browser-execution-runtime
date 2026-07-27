@@ -178,7 +178,20 @@ export async function observePage(page: Page): Promise<SemanticState> {
   const domain = safeHostname(url);
   const pageHint = pageHintFromUrl(url, title);
 
-  const rawNodes = (await page.evaluate(COLLECT_NODES_SCRIPT)) as RawNode[];
+  const rawNodes: RawNode[] = [];
+  const frames = page.frames();
+  for (const frame of frames) {
+    if (rawNodes.length >= 160) break;
+    try {
+      const part = (await frame.evaluate(COLLECT_NODES_SCRIPT)) as RawNode[];
+      for (const node of part) {
+        rawNodes.push(node);
+        if (rawNodes.length >= 160) break;
+      }
+    } catch {
+      // Detached / cross-origin sandbox / unloading frames — skip
+    }
+  }
 
   const nodes: SemanticNode[] = rawNodes.map((n, index) => ({
     id: `n${index}`,
@@ -219,6 +232,7 @@ export async function observePage(page: Page): Promise<SemanticState> {
       .filter(Boolean),
   );
 
+  const frameCount = Math.max(0, frames.length - 1);
   const base = {
     url,
     title,
@@ -231,7 +245,12 @@ export async function observePage(page: Page): Promise<SemanticState> {
     nodes,
     signals: [] as string[],
   };
-  const signals = buildSignals(base);
+  const signalSet = new Set(buildSignals(base));
+  if (frameCount > 0) {
+    signalSet.add("has_iframe");
+    signalSet.add(`frames:${Math.min(frameCount, 20)}`);
+  }
+  const signals = [...signalSet].sort();
   const fingerprint = fingerprintFromParts({
     domain,
     pageHint,

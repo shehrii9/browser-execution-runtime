@@ -6,6 +6,7 @@ import { cookieConsentPlugin } from "./cookieConsent.js";
 import { githubPlugin } from "./github.js";
 import { googlePlugin } from "./google.js";
 import { mediaSitesPlugin } from "./mediaSites.js";
+import { contentSitesPlugin } from "./contentSites.js";
 import { pluginMatches, type SitePlugin } from "./types.js";
 
 export const DEFAULT_PLUGINS: SitePlugin[] = [
@@ -15,6 +16,7 @@ export const DEFAULT_PLUGINS: SitePlugin[] = [
   googlePlugin,
   amazonPlugin,
   mediaSitesPlugin,
+  contentSitesPlugin,
 ];
 
 export class PluginRegistry {
