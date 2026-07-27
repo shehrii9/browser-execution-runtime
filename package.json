@@ -47,7 +47,7 @@
     "openai-compatible",
     "playwright"
   ],
-  "author": "",
+  "author": "Shahryar Ahmad <https://github.com/shehrii9>",
   "license": "MIT",
   "engines": {
     "node": ">=20"
