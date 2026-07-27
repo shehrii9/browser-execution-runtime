@@ -1,13 +1,25 @@
 import { PlanSchema, type Plan } from "../types.js";
+import { isMediaHost } from "../state/fingerprint.js";
 import { PluginRegistry } from "../plugins/registry.js";
 
 export interface Planner {
   plan(intent: string): Promise<Plan | null>;
 }
 
+const MEDIA_HOME: Record<string, string> = {
+  youtube: "www.youtube.com",
+  vimeo: "vimeo.com",
+  twitch: "www.twitch.tv",
+  dailymotion: "www.dailymotion.com",
+  rumble: "rumble.com",
+  soundcloud: "soundcloud.com",
+  spotify: "open.spotify.com",
+  tiktok: "www.tiktok.com",
+};
+
 /**
  * Built-in deterministic planner for common intents.
- * Optional PluginRegistry supplies site workflows (YouTube, Google, …).
+ * Optional PluginRegistry supplies site workflows (media sites, Google, …).
  */
 export class BuiltinPlanner implements Planner {
   constructor(private readonly plugins: PluginRegistry = new PluginRegistry()) {}
@@ -27,14 +39,28 @@ export class BuiltinPlanner implements Planner {
       });
     }
 
-    if (/^open\s+youtube$/i.test(trimmed)) {
-      const steps = this.plugins.workflowsFor("www.youtube.com").open_home;
-      if (steps?.length) {
+    const openMedia = trimmed.match(
+      /^open\s+(youtube|vimeo|twitch|dailymotion|rumble|soundcloud|spotify|tiktok)$/i,
+    );
+    if (openMedia) {
+      const key = openMedia[1]!.toLowerCase();
+      const domain = MEDIA_HOME[key]!;
+      const workflows = this.plugins.workflowsFor(domain);
+      const named = workflows[`open_${key}`] ?? workflows.open_home;
+      if (named?.length) {
         return PlanSchema.parse({
           goal: trimmed,
-          steps: steps.map((action) => ({ action })),
+          steps: named.map((action) => ({ action })),
         });
       }
+      return PlanSchema.parse({
+        goal: trimmed,
+        steps: [
+          { action: { type: "navigate", url: `https://${domain}` } },
+          { action: { type: "wait", settle: true }, optional: true },
+          { action: { type: "dismiss_overlays" }, optional: true },
+        ],
+      });
     }
 
     const workflowMatch = trimmed.match(
@@ -65,12 +91,15 @@ export class BuiltinPlanner implements Planner {
       const siteRaw = searchMatch[2]!.trim();
       const url = siteRaw.startsWith("http") ? siteRaw : `https://${siteRaw}`;
       const domain = new URL(url).hostname;
-      const isYoutube = /youtube\.com|youtu\.be/i.test(domain);
+      const media = isMediaHost(domain);
       const prefix = this.plugins.workflowsFor(domain).search;
 
       const steps = [
         ...(prefix?.length
-          ? prefix.map((action) => ({ action }))
+          ? [
+              { action: { type: "navigate" as const, url } },
+              ...prefix.map((action) => ({ action })),
+            ]
           : [
               { action: { type: "navigate" as const, url } },
               { action: { type: "dismiss_overlays" as const }, optional: true },
@@ -78,8 +107,10 @@ export class BuiltinPlanner implements Planner {
         {
           action: {
             type: "type" as const,
-            target: isYoutube
-              ? { css: "input#search, input[name='search_query']" }
+            target: media
+              ? {
+                  css: "input#search, input[name='search_query'], input[type='search'], input[placeholder*='Search' i]",
+                }
               : { role: "searchbox" },
             text: query,
             pressEnter: true,

@@ -1,11 +1,11 @@
 {
-  "goal": "Open YouTube home and settle dynamic UI",
+  "goal": "Open a media home page, settle dynamic UI, run a search",
   "steps": [
     {
       "id": "go",
       "action": {
         "type": "navigate",
-        "url": "https://www.youtube.com",
+        "url": "https://vimeo.com",
         "waitUntil": "domcontentloaded"
       }
     },
@@ -22,15 +22,16 @@
       "id": "search",
       "action": {
         "type": "type",
-        "target": { "css": "input#search, input[name='search_query']" },
+        "target": {
+          "css": "input#search, input[name='search_query'], input[type='search'], input[placeholder*='Search' i]"
+        },
         "text": "browser automation",
         "pressEnter": true
       }
     },
     {
       "id": "results",
-      "action": { "type": "wait", "settle": true, "timeoutMs": 8000 },
-      "expect": { "urlIncludes": "search_query" }
+      "action": { "type": "wait", "settle": true, "timeoutMs": 8000 }
     }
   ]
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ActionSchema } from "../src/types.js";
-import { youtubePlugin } from "../src/plugins/youtube.js";
+import { mediaSitesPlugin } from "../src/plugins/mediaSites.js";
 
 describe("scroll until + media actions", () => {
   it("parses infinite-scroll scroll action", () => {
@@ -8,7 +8,7 @@ describe("scroll until + media actions", () => {
       type: "scroll",
       direction: "down",
       amount: 1000,
-      untilCss: "ytd-video-renderer",
+      untilCss: "article",
       untilCountAtLeast: 12,
       maxScrolls: 10,
       timeoutMs: 20000,
@@ -16,7 +16,7 @@ describe("scroll until + media actions", () => {
     expect(action.type).toBe("scroll");
     if (action.type === "scroll") {
       expect(action.untilCountAtLeast).toBe(12);
-      expect(action.untilCss).toBe("ytd-video-renderer");
+      expect(action.untilCss).toBe("article");
     }
   });
 
@@ -35,10 +35,10 @@ describe("scroll until + media actions", () => {
     }
   });
 
-  it("exposes YouTube load_more_results and play-capable open_watch", () => {
-    const load = youtubePlugin.workflows?.load_more_results ?? [];
+  it("exposes media-site load_more_results and ready_player workflows", () => {
+    const load = mediaSitesPlugin.workflows?.load_more_results ?? [];
     expect(load.some((a) => a.type === "scroll")).toBe(true);
-    const watch = youtubePlugin.workflows?.open_watch ?? [];
-    expect(watch.some((a) => a.type === "media")).toBe(true);
+    const ready = mediaSitesPlugin.workflows?.ready_player ?? [];
+    expect(ready.some((a) => a.type === "media")).toBe(true);
   });
 });

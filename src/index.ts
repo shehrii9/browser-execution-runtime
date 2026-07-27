@@ -16,7 +16,7 @@ export {
 export { PluginRegistry, DEFAULT_PLUGINS } from "./plugins/registry.js";
 export { EventBus } from "./events/bus.js";
 export type { RuntimeEvent, RuntimeEventType } from "./events/bus.js";
-export { youtubePlugin } from "./plugins/youtube.js";
+export { mediaSitesPlugin, MEDIA_SITE_DOMAINS, youtubePlugin } from "./plugins/mediaSites.js";
 export { settlePage } from "./browser/settle.js";
 export { cookieConsentPlugin } from "./plugins/cookieConsent.js";
 export { githubPlugin } from "./plugins/github.js";

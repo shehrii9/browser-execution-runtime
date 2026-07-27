@@ -44,7 +44,7 @@ export const ActionSchema = z.discriminatedUnion("type", [
     urlIncludes: z.string().optional(),
     text: z.string().optional(),
     target: TargetRefSchema.optional(),
-    /** Wait until DOM stops changing (good for SPAs / YouTube-like pages). */
+    /** Wait until DOM stops changing (good for SPAs / media sites). */
     settle: z.boolean().optional(),
     /** Best-effort networkidle during settle. */
     networkIdle: z.boolean().optional(),
@@ -81,7 +81,7 @@ export const ActionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("dismiss_overlays"),
   }),
-  /** Lightweight media controls for video sites (YouTube-like). No DRM scrubbing. */
+  /** Lightweight media controls for video/audio sites. No DRM scrubbing. */
   z.object({
     type: z.literal("media"),
     command: z.enum([

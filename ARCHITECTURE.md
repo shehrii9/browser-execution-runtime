@@ -48,12 +48,12 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the ag
 | Resume failed run | Done |
 | Computer-use fallback hook | Done (noop by default; vision/LLM when configured) |
 | Vector similarity (L3) | Done (local hashing embeddings + cosine in SQLite) |
-| Site plugins | Done (cookie/auth/github/google/amazon/youtube) |
+| Site plugins | Done (cookie/auth/github/google/amazon/media-sites) |
 | Multi-tab | Done (new/switch/close tab actions + API) |
 | Dynamic page settle (SPA/AJAX) | Done (`settlePage`, wait.settle, post navigate/click) |
 | Infinite scroll waits | Done (`scroll` + `untilText` / `untilCss` / `untilCountAtLeast`) |
-| YouTube-like handling | Done (plugin + watch/results hints + media play/skip_ad) |
-| Media actions | Done (`media` play/pause/mute/skip_ad/fullscreen) |
+| Media-site handling | Done (generic plugin for video/audio hosts + watch/results hints) |
+| Media actions | Done (`media` play/pause/mute/skip_ad/fullscreen for video+audio) |
 | One-command startup | Done (`npm start`) |
 | Event bus | Done (`EventBus`, `GET /events`, SSE `/events/stream`) |
 | Chrome extension bridge | Done (attach-only debug extension) |
@@ -65,27 +65,30 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the ag
 | Computer-use fallback (vision+text) | Done (`VisionComputerUseFallback` cascade) |
 | Experience replay benchmark | Done (`npm run bench:replay`) |
 | Provider-agnostic / no required API key | Done |
-| Plugin workflows wired into planner | Done (`run <workflow> on <domain>`, YouTube open/search) |
+| Plugin workflows wired into planner | Done (`run <workflow> on <domain>`, media open/search/ready_player) |
 | Iframe-aware targets | Done (`target.frame` / `target.frameUrl` + same-origin observe) |
 
 ---
 
-## Dynamic pages & YouTube (current behavior)
+## Dynamic pages & media sites (current behavior)
 
 **Dynamic / SPA pages**
 - After `navigate` / `click`, runtime waits for a short DOM-stable window (`settlePage`).
 - Plans can use `{ "type": "wait", "settle": true }` or `networkIdle: true`.
-- Observe walks **open shadow roots** and includes headings/video nodes.
+- Observe walks **open shadow roots** and includes headings/video/audio nodes.
 - Expect failures get one settle + recovery retry (not instant fail).
 - Targets can scope into iframes via `frame` / `frameUrl`.
 - Same-origin iframe contents are included in observe when reachable.
 - Still no MutationObserver stream / closed-shadow piercing / cross-origin iframe DOM.
 
-**YouTube-like sites**
-- `youtube` plugin: consent, skip-ad, player wait, home/search/watch workflows.
-- Page hints: `watch`, `results`, `shorts`, `home`, `video_site`.
-- Signals: `video_player`, `skip_ad`.
-- Limits: no DRM scrubbing, closed shadow / canvas controls may stay invisible; login walls need the user/agent.
+**Media sites (video/audio)**
+- `media-sites` plugin covers common hosts (YouTube, Vimeo, Twitch, Dailymotion, Rumble, SoundCloud, Spotify web, TikTok, …).
+- Shared patterns: consent, skip-ad/skip-intro, player wait, feed scroll, search.
+- Page hints: `watch`, `results`, `shorts`, `media_home`, `media_site`.
+- Signals: `media_site`, `video_player`, `audio_player`, `skip_ad`.
+- Actions: `{ "type": "media", "command": "play"|"pause"|"skip_ad"|… }` operate on the largest visible `<video>`/`<audio>`.
+- Limits: no DRM scrubbing, closed shadow / canvas-only controls may stay invisible; login walls need the user/agent.
+- YouTube was only the first example host — not the product scope.
 
 ---
 
