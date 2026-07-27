@@ -1,0 +1,36 @@
+{
+  "goal": "Open YouTube home and settle dynamic UI",
+  "steps": [
+    {
+      "id": "go",
+      "action": {
+        "type": "navigate",
+        "url": "https://www.youtube.com",
+        "waitUntil": "domcontentloaded"
+      }
+    },
+    {
+      "id": "settle",
+      "action": { "type": "wait", "settle": true, "timeoutMs": 8000 }
+    },
+    {
+      "id": "cookies",
+      "action": { "type": "dismiss_overlays" },
+      "optional": true
+    },
+    {
+      "id": "search",
+      "action": {
+        "type": "type",
+        "target": { "css": "input#search, input[name='search_query']" },
+        "text": "browser automation",
+        "pressEnter": true
+      }
+    },
+    {
+      "id": "results",
+      "action": { "type": "wait", "settle": true, "timeoutMs": 8000 },
+      "expect": { "urlIncludes": "search_query" }
+    }
+  ]
+}

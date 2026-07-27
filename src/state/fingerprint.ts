@@ -14,11 +14,20 @@ export function buildSignals(state: Omit<SemanticState, "fingerprint" | "observe
   if (state.buttons.some((b) => /check ?out|buy|purchase/i.test(b))) {
     signals.add("checkout_available");
   }
+  if (state.buttons.some((b) => /skip ?ad|^skip$/i.test(b))) {
+    signals.add("skip_ad");
+  }
   if (state.inputs.some((i) => /password/i.test(i))) {
     signals.add("password_field");
   }
   if (state.inputs.some((i) => /search/i.test(i))) {
     signals.add("search_field");
+  }
+  if (state.nodes.some((n) => n.role === "video" || n.tag === "video")) {
+    signals.add("video_player");
+  }
+  if (state.pageHint === "watch" || state.pageHint === "results") {
+    signals.add(`hint:${state.pageHint}`);
   }
   for (const dialog of state.dialogs.slice(0, 5)) {
     signals.add(`dialog:${normalizeToken(dialog)}`);
@@ -43,10 +52,21 @@ export function fingerprintFromParts(parts: {
 export function pageHintFromUrl(url: string, title: string): string {
   try {
     const u = new URL(url);
+    const host = u.hostname.toLowerCase();
     const path = u.pathname.toLowerCase();
+    if (host.includes("youtube.com") || host === "youtu.be") {
+      if (path.startsWith("/watch") || host === "youtu.be") return "watch";
+      if (path.startsWith("/results") || u.searchParams.has("search_query")) {
+        return "results";
+      }
+      if (path.startsWith("/shorts")) return "shorts";
+      if (path === "/" || path === "") return "home";
+      return "video_site";
+    }
     if (path.includes("checkout") || path.includes("cart")) return "checkout";
     if (path.includes("login") || path.includes("signin")) return "login";
     if (path.includes("search") || u.searchParams.has("q")) return "search";
+    if (path.includes("/watch") || path.includes("/video")) return "watch";
     if (path.includes("product") || path.includes("/dp/") || path.includes("/p/")) {
       return "product";
     }
@@ -57,7 +77,7 @@ export function pageHintFromUrl(url: string, title: string): string {
   const t = title.toLowerCase();
   if (t.includes("checkout") || t.includes("cart")) return "checkout";
   if (t.includes("sign in") || t.includes("log in")) return "login";
-  if (t.includes("search")) return "search";
+  if (t.includes("search") || t.includes("youtube")) return "search";
   return "page";
 }
 

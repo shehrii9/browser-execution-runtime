@@ -51,14 +51,23 @@ export function heuristicFixes(problem: ProblemKind): Action[][] {
       ];
     case "target_not_found":
       return [
+        [{ type: "wait", settle: true, timeoutMs: 4000 }],
         [{ type: "wait", ms: 1000 }],
-        [{ type: "dismiss_overlays" }, { type: "wait", ms: 500 }],
+        [{ type: "dismiss_overlays" }, { type: "wait", settle: true }],
         [{ type: "scroll", direction: "down", amount: 600 }],
         [{ type: "press", key: "Escape" }, { type: "wait", ms: 300 }],
       ];
     case "navigation_timeout":
-      return [[{ type: "wait", ms: 1500 }], [{ type: "press", key: "F5" }]];
+      return [
+        [{ type: "wait", settle: true, timeoutMs: 5000 }],
+        [{ type: "wait", ms: 1500 }],
+        [{ type: "press", key: "F5" }],
+      ];
     default:
-      return [[{ type: "dismiss_overlays" }], [{ type: "wait", ms: 800 }]];
+      return [
+        [{ type: "dismiss_overlays" }],
+        [{ type: "wait", settle: true }],
+        [{ type: "wait", ms: 800 }],
+      ];
   }
 }

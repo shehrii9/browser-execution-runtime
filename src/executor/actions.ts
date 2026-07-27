@@ -1,4 +1,5 @@
 import type { Page } from "playwright";
+import { settlePage } from "../browser/settle.js";
 import { assertNavigationAllowed, looksLikePurchaseIntent } from "../policy.js";
 import { SelectorEngine } from "../selectors/engine.js";
 import type { Action, Policy } from "../types.js";
@@ -38,6 +39,8 @@ export class ActionExecutor {
           await this.page.goto(action.url, {
             waitUntil: action.waitUntil ?? "domcontentloaded",
           });
+          // SPAs often paint after domcontentloaded — settle briefly by default.
+          await settlePage(this.page, { timeoutMs: 3500, quietMs: 300 });
           return { ok: true };
         }
         case "click": {
@@ -46,6 +49,7 @@ export class ActionExecutor {
             throw new Error(`Purchase-like click blocked by policy: "${label}"`);
           }
           await this.selectors.locate(action.target).click({ timeout: 8000 });
+          await settlePage(this.page, { timeoutMs: 2500, quietMs: 250 });
           return { ok: true };
         }
         case "type": {
@@ -67,32 +71,53 @@ export class ActionExecutor {
           return { ok: true };
         }
         case "wait": {
+          const timeout = action.timeoutMs ?? 15000;
           if (action.ms) {
             await this.page.waitForTimeout(action.ms);
           }
           if (action.urlIncludes) {
             await this.page.waitForURL(
               (url) => url.toString().includes(action.urlIncludes!),
-              { timeout: 15000 },
+              { timeout },
             );
           }
           if (action.text) {
             await this.page.getByText(action.text).first().waitFor({
               state: "visible",
-              timeout: 15000,
+              timeout,
             });
           }
           if (action.target) {
             await this.selectors.locate(action.target).waitFor({
               state: "visible",
-              timeout: 15000,
+              timeout,
             });
+          }
+          if (action.settle || action.networkIdle) {
+            await settlePage(this.page, {
+              timeoutMs: action.timeoutMs ?? 5000,
+              networkIdle: Boolean(action.networkIdle),
+            });
+          }
+          // Empty wait with no conditions still settles briefly for dynamic pages.
+          if (
+            !action.ms &&
+            !action.urlIncludes &&
+            !action.text &&
+            !action.target &&
+            !action.settle &&
+            !action.networkIdle
+          ) {
+            await settlePage(this.page, { timeoutMs: 2000, quietMs: 250 });
           }
           return { ok: true };
         }
         case "scroll": {
           const delta = action.direction === "up" ? -action.amount : action.amount;
           await this.page.mouse.wheel(0, delta);
+          if (action.settle !== false) {
+            await settlePage(this.page, { timeoutMs: 2500, quietMs: 300 });
+          }
           return { ok: true };
         }
         case "extract": {
@@ -118,6 +143,8 @@ export class ActionExecutor {
           return { ok: true };
         }
         case "observe": {
+          // Runner always re-observes; settle so late SPA nodes are visible first.
+          await settlePage(this.page, { timeoutMs: 3000, quietMs: 300 });
           return { ok: true };
         }
         case "new_tab": {
@@ -155,6 +182,9 @@ async function dismissCommonOverlays(page: Page): Promise<void> {
     page.getByRole("button", { name: /close/i }),
     page.getByRole("button", { name: /no thanks/i }),
     page.getByRole("button", { name: /reject all/i }),
+    page.getByRole("button", { name: /skip ad/i }),
+    page.getByRole("button", { name: /^skip$/i }),
+    page.getByText(/skip ad/i),
   ];
 
   for (const candidate of candidates) {

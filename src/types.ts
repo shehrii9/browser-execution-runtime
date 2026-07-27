@@ -40,11 +40,19 @@ export const ActionSchema = z.discriminatedUnion("type", [
     urlIncludes: z.string().optional(),
     text: z.string().optional(),
     target: TargetRefSchema.optional(),
+    /** Wait until DOM stops changing (good for SPAs / YouTube-like pages). */
+    settle: z.boolean().optional(),
+    /** Best-effort networkidle during settle. */
+    networkIdle: z.boolean().optional(),
+    /** Max wait for settle / target / text (ms). */
+    timeoutMs: z.number().int().positive().optional(),
   }),
   z.object({
     type: z.literal("scroll"),
     direction: z.enum(["up", "down"]).default("down"),
     amount: z.number().int().positive().default(800),
+    /** After scrolling, wait for late-loaded content. */
+    settle: z.boolean().optional(),
   }),
   z.object({
     type: z.literal("extract"),

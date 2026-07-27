@@ -5,6 +5,7 @@ import { authModalPlugin } from "./authModal.js";
 import { cookieConsentPlugin } from "./cookieConsent.js";
 import { githubPlugin } from "./github.js";
 import { googlePlugin } from "./google.js";
+import { youtubePlugin } from "./youtube.js";
 import { pluginMatches, type SitePlugin } from "./types.js";
 
 export const DEFAULT_PLUGINS: SitePlugin[] = [
@@ -13,6 +14,7 @@ export const DEFAULT_PLUGINS: SitePlugin[] = [
   githubPlugin,
   googlePlugin,
   amazonPlugin,
+  youtubePlugin,
 ];
 
 export class PluginRegistry {

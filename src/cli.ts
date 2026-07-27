@@ -172,9 +172,8 @@ Config:
   BER_LLM_API_BASE/KEY/MODEL Optional LLM wiring (key optional)
 
 Quick start (no API key):
-  npm run init-config
-  npm run daemon
-  npm run dev -- run-plan examples/sample-plan.json
+  npm install
+  npm start
 `);
 }
 
