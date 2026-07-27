@@ -58,6 +58,8 @@ This project is a **local execution wrapper**:
 - **L3 similarity** — local hashing embeddings by default; optional neural `/embeddings`
 - **Site plugins** — `cookie-consent`, `auth-modal`, `github`, `google`, `amazon`, `youtube`
 - **Dynamic settle** — waits for SPA/DOM quiet after navigate/click; `wait.settle`
+- **Event bus** — step/recovery/run events via `GET /events` or SSE stream
+- **Iframe targets** — `frame` / `frameUrl` for consent CMPs and nested UI
 - **Open tool bridge** — OpenAI-style `browser_*` tools any agent can register
 - **Optional LLM planner** — any OpenAI-compatible endpoint; key optional
 - **Debug Chrome extension** — attach-only bridge (no AI inside)
