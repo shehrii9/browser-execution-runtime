@@ -1,4 +1,9 @@
 import { embedText } from "./embeddings.js";
+import {
+  embedTextViaRust,
+  rustCoreAvailable,
+  rustCoreEnabled,
+} from "./rustBridge.js";
 
 export interface Embedder {
   readonly id: string;
@@ -11,6 +16,27 @@ export class HashingEmbedder implements Embedder {
   async embed(text: string): Promise<Float32Array> {
     return embedText(text);
   }
+}
+
+/**
+ * Same L3 hashing algorithm as {@link HashingEmbedder}, computed by `ber-core` when available.
+ */
+export class RustHashingEmbedder implements Embedder {
+  readonly id = "local_hashing_rust";
+  private readonly fallback = new HashingEmbedder();
+
+  async embed(text: string): Promise<Float32Array> {
+    if (!rustCoreEnabled()) return this.fallback.embed(text);
+    const vec = embedTextViaRust(text);
+    return vec ?? this.fallback.embed(text);
+  }
+}
+
+function defaultHashingEmbedder(): Embedder {
+  if (rustCoreEnabled() && rustCoreAvailable()) {
+    return new RustHashingEmbedder();
+  }
+  return new HashingEmbedder();
 }
 
 export interface NeuralEmbedderOptions {
@@ -32,7 +58,7 @@ export class NeuralEmbedder implements Embedder {
   private readonly fetchImpl: typeof fetch;
 
   constructor(private readonly options: NeuralEmbedderOptions) {
-    this.fallback = options.fallback ?? new HashingEmbedder();
+    this.fallback = options.fallback ?? defaultHashingEmbedder();
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
@@ -100,7 +126,7 @@ export function createEmbedderFromEnv(
     env.BER_LLM_API_BASE ||
     env.OPENAI_BASE_URL;
   if (!apiBase || env.BER_EMBEDDINGS === "0" || env.BER_EMBEDDINGS === "hash") {
-    return new HashingEmbedder();
+    return defaultHashingEmbedder();
   }
   return new NeuralEmbedder({
     apiBase,
@@ -110,5 +136,6 @@ export function createEmbedderFromEnv(
       env.OPENAI_API_KEY,
     model: env.BER_EMBEDDINGS_MODEL || "text-embedding-3-small",
     timeoutMs: Number(env.BER_EMBEDDINGS_TIMEOUT_MS ?? 30_000),
+    fallback: defaultHashingEmbedder(),
   });
 }

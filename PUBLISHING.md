@@ -55,7 +55,7 @@ Optional env for consumers:
 - `BER_EMBEDDINGS=hash` to force local embeddings
 - `BER_EMBEDDINGS_API_BASE` for neural embeddings
 - `BER_PIERCE_SHADOW=0` to disable CDP closed-shadow pierce during observe
-- `BER_RUST_CORE=1` to prefer the experimental `ber-core` binary for fingerprints
+- `BER_RUST_CORE=1` to prefer the experimental `ber-core` binary for fingerprints and L3 hashing embeddings
 
 ## Manual PyPI publish
 

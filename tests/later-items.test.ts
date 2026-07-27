@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fingerprintFromParts } from "../src/state/fingerprint.js";
-import { rustCoreEnabled, fingerprintViaRust } from "../src/memory/rustBridge.js";
+import { rustCoreEnabled, fingerprintViaRust, embedTextViaRust } from "../src/memory/rustBridge.js";
 import { collectPiercedInteractiveNodes } from "../src/state/pierce.js";
 
 describe("later-items: pierce + rust bridge", () => {
@@ -36,6 +36,14 @@ describe("later-items: pierce + rust bridge", () => {
         dialogs: [],
       }),
     ).toBeNull();
+    if (prev === undefined) delete process.env.BER_RUST_CORE;
+    else process.env.BER_RUST_CORE = prev;
+  });
+
+  it("embed bridge stays inert unless BER_RUST_CORE is set", () => {
+    const prev = process.env.BER_RUST_CORE;
+    delete process.env.BER_RUST_CORE;
+    expect(embedTextViaRust("cookie banner")).toBeNull();
     if (prev === undefined) delete process.env.BER_RUST_CORE;
     else process.env.BER_RUST_CORE = prev;
   });

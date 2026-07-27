@@ -19,4 +19,4 @@ cargo build -p ber-core --release
 
 ## Bridge
 
-Optional Node bridge: set `BER_RUST_CORE=1` (and ensure `ber-core` is on `PATH`) to prefer the Rust binary for fingerprint hashing experiments.
+Optional Node bridge: set `BER_RUST_CORE=1` (and ensure `ber-core` is on `PATH`) to prefer the Rust binary for fingerprint hashing and L3 experience embeddings (`local_hashing_rust` embedder).

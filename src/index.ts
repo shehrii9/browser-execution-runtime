@@ -10,6 +10,7 @@ export { SessionMemory } from "./memory/hierarchy.js";
 export { embedExperience, cosineSimilarity } from "./memory/embeddings.js";
 export {
   HashingEmbedder,
+  RustHashingEmbedder,
   NeuralEmbedder,
   createEmbedderFromEnv,
 } from "./memory/embedder.js";
@@ -20,7 +21,7 @@ export { mediaSitesPlugin, MEDIA_SITE_DOMAINS, youtubePlugin } from "./plugins/m
 export { contentSitesPlugin } from "./plugins/contentSites.js";
 export { settlePage } from "./browser/settle.js";
 export { collectPiercedInteractiveNodes } from "./state/pierce.js";
-export { rustCoreEnabled, rustCoreAvailable } from "./memory/rustBridge.js";
+export { rustCoreEnabled, rustCoreAvailable, embedTextViaRust } from "./memory/rustBridge.js";
 export { cookieConsentPlugin } from "./plugins/cookieConsent.js";
 export { githubPlugin } from "./plugins/github.js";
 export { googlePlugin } from "./plugins/google.js";
