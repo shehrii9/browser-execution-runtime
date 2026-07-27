@@ -5,5 +5,7 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
     exclude: ["tests/browser-smoke.test.ts"],
+    fileParallelism: false,
+    maxWorkers: 1,
   },
 });
