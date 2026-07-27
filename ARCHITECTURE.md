@@ -57,7 +57,7 @@ Current stack:
 | Content/article sites | Done (`content-sites` plugin + `article` page hint) |
 | One-command startup | Done (`npm start`) |
 | Event bus | Done (`EventBus`, `GET /events`, SSE `/events/stream`) |
-| Chrome extension bridge | Done (attach-only debug extension) |
+| Chrome extension bridge | Done (observe/diff/events, modal chips, dismiss overlays, shortcut) |
 | Optional neural embeddings | Done (`NeuralEmbedder`, hash fallback) |
 | Rust core | Scaffolded (`crates/ber-core`: fingerprint + hashing embed + CLI; TS still default) |
 | Closed-shadow pierce | Done (CDP `DOM.getDocument` pierce during observe; disable with `BER_PIERCE_SHADOW=0`) |

@@ -9,6 +9,7 @@
         --bg: #f6f1e8;
         --ink: #1d1a16;
         --accent: #0f6b5c;
+        --warn: #9b4d00;
         --line: #d7cfc0;
       }
       body {
@@ -18,21 +19,23 @@
         background:
           radial-gradient(circle at top left, #fff7e8, transparent 45%),
           linear-gradient(180deg, #f8f3ea, #efe6d8);
-        width: 320px;
+        width: 340px;
         padding: 14px;
       }
       h1 {
         margin: 0 0 4px;
-        font: 700 16px/1.2 "Fraunces", Georgia, serif;
+        font: 700 16px/1.2 Georgia, serif;
       }
-      p {
-        margin: 0 0 12px;
+      p.sub {
+        margin: 0 0 10px;
         color: #5b5348;
+        font-size: 12px;
       }
       label {
         display: block;
         margin: 0 0 4px;
         font-weight: 600;
+        font-size: 12px;
       }
       input {
         width: 100%;
@@ -40,22 +43,83 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         padding: 8px 10px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         background: #fffdf8;
       }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
       button {
-        width: 100%;
         border: 0;
         border-radius: 8px;
-        padding: 9px 10px;
-        margin-bottom: 8px;
+        padding: 8px 8px;
         background: var(--accent);
         color: white;
-        font-weight: 700;
+        font-weight: 600;
+        font-size: 12px;
         cursor: pointer;
       }
       button.secondary {
         background: #2d2a26;
+      }
+      button.ghost {
+        background: #fffdf8;
+        color: var(--ink);
+        border: 1px solid var(--line);
+      }
+      button.full {
+        width: 100%;
+        margin-bottom: 6px;
+      }
+      .section-title {
+        margin: 10px 0 6px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #5b5348;
+      }
+      #signals {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        min-height: 22px;
+      }
+      .chip {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #e8f5f1;
+        color: var(--accent);
+        border: 1px solid #b8ddd4;
+      }
+      .chip.warn {
+        background: #fff4e5;
+        color: var(--warn);
+        border-color: #f0c98a;
+      }
+      #events {
+        font-size: 11px;
+        max-height: 88px;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fffdf8;
+        padding: 6px 8px;
+      }
+      #events:empty::before {
+        content: "No events yet — attach, then observe.";
+        color: #8a8175;
+      }
+      .ev {
+        padding: 2px 0;
+        border-bottom: 1px solid #efe6d8;
+      }
+      .ev:last-child {
+        border-bottom: 0;
       }
       pre {
         white-space: pre-wrap;
@@ -63,9 +127,10 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         padding: 8px;
-        max-height: 160px;
+        max-height: 140px;
         overflow: auto;
-        margin: 0;
+        margin: 8px 0 0;
+        font-size: 11px;
       }
       .ok { color: #0f6b5c; }
       .bad { color: #9b2c2c; }
@@ -73,13 +138,27 @@
   </head>
   <body>
     <h1>BER Bridge</h1>
-    <p>Debug attach only. The model stays outside the browser.</p>
+    <p class="sub">Debug helper — execution stays in the local daemon.</p>
     <label for="daemon">Daemon URL</label>
     <input id="daemon" value="http://127.0.0.1:8787" />
-    <button id="ping">Check daemon</button>
-    <button id="observe" class="secondary">Observe current tab URL</button>
-    <button id="attach">Attach runtime to this URL</button>
-    <pre id="out">Ready.</pre>
+    <div class="row">
+      <button id="ping" type="button">Health</button>
+      <button id="status" type="button" class="secondary">Status</button>
+    </div>
+    <button id="attach" type="button" class="full">Attach to this tab URL</button>
+    <div class="row">
+      <button id="observe" type="button">Observe</button>
+      <button id="diff" type="button" class="ghost">Diff</button>
+    </div>
+    <div class="row">
+      <button id="events-btn" type="button" class="ghost">Events</button>
+      <button id="dismiss" type="button" class="secondary">Dismiss overlays</button>
+    </div>
+    <div class="section-title">Modal / signals</div>
+    <div id="signals"></div>
+    <div class="section-title">Recent events</div>
+    <div id="events"></div>
+    <pre id="out">Ready. Start daemon, then Attach.</pre>
     <script src="popup.js" type="module"></script>
   </body>
 </html>
