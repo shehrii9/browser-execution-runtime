@@ -3,6 +3,7 @@ import { BrowserSession, type AttachOptions } from "./browser/session.js";
 import { ExperienceStore } from "./experience/store.js";
 import { PlanRunner } from "./executor/plan-runner.js";
 import { ActionExecutor } from "./executor/actions.js";
+import { createEmbedderFromEnv, type Embedder } from "./memory/embedder.js";
 import { SessionMemory } from "./memory/hierarchy.js";
 import { PluginRegistry } from "./plugins/registry.js";
 import {
@@ -32,6 +33,7 @@ export interface RuntimeOptions {
   planner?: Planner;
   computerUseFallback?: ComputerUseFallback;
   plugins?: PluginRegistry;
+  embedder?: Embedder;
 }
 
 export class BrowserRuntime {
@@ -51,7 +53,10 @@ export class BrowserRuntime {
     this.policy = createPolicy(options.policy ?? {});
     this.session = new BrowserSession(this.policy);
     this.dataDir = resolve(options.dataDir ?? "data");
-    this.experiences = new ExperienceStore(resolve(this.dataDir, "experiences.db"));
+    this.experiences = new ExperienceStore(
+      resolve(this.dataDir, "experiences.db"),
+      options.embedder ?? createEmbedderFromEnv(),
+    );
     this.planner = options.planner ?? new BuiltinPlanner();
     this.computerUseFallback =
       options.computerUseFallback ?? new NoopComputerUseFallback();
@@ -157,7 +162,7 @@ export class BrowserRuntime {
         });
         if (fixResult.ok) {
           if (fixResult.steps[0]) {
-            this.experiences.remember({
+            await this.experiences.remember({
               site: result.finalState?.domain ?? "unknown",
               goal: plan.goal,
               stateHash: result.finalState?.fingerprint ?? "unknown",
@@ -202,7 +207,7 @@ export class BrowserRuntime {
     return this.run(plan);
   }
 
-  remember(input: {
+  async remember(input: {
     site: string;
     goal: string;
     stateHash: string;
@@ -237,7 +242,7 @@ export class BrowserRuntime {
       memory: {
         l1SessionCached: Boolean(state),
         l2ExperienceCount: this.experiences.count(),
-        l3VectorIndex: "local_hashing_embeddings",
+        l3VectorIndex: this.experiences.embedderId(),
         l3VectorCount: this.experiences.vectorCount(),
         engine: "typescript+sqlite",
       },

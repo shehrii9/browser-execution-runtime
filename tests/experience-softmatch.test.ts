@@ -10,12 +10,12 @@ afterEach(() => {
 });
 
 describe("experience soft match", () => {
-  it("matches by signal overlap when fingerprint differs", () => {
+  it("matches by signal overlap when fingerprint differs", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ber-soft-"));
     const store = new ExperienceStore(join(dir, "experiences.db"));
     stores.push(store);
 
-    store.remember({
+    await store.remember({
       site: "shop.test",
       goal: "checkout",
       stateHash: "fp-old",
@@ -25,7 +25,7 @@ describe("experience soft match", () => {
       fix: [{ type: "dismiss_overlays" }],
     });
 
-    const found = store.findBest({
+    const found = await store.findBest({
       site: "shop.test",
       stateHash: "fp-new",
       problem: "cookie_banner",

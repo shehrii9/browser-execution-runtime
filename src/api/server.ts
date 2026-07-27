@@ -25,12 +25,34 @@ export function startDaemon(options: DaemonOptions): Server {
 
   const server = createServer(async (req, res) => {
     try {
+      // Allow local debug extension / web tools to call the daemon.
+      res.setHeader("access-control-allow-origin", "*");
+      res.setHeader("access-control-allow-methods", "GET,POST,OPTIONS");
+      res.setHeader("access-control-allow-headers", "content-type");
+      if ((req.method ?? "GET") === "OPTIONS") {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+
       const url = new URL(req.url ?? "/", `http://${host}:${port}`);
       const path = url.pathname;
       const method = req.method ?? "GET";
 
       if (method === "GET" && path === "/health") {
         return sendJson(res, 200, { ok: true });
+      }
+
+      if (method === "GET" && path === "/extension/info") {
+        return sendJson(res, 200, {
+          role: "debug-bridge-target",
+          message:
+            "Extension is attach-only. AI/memory/execution stay in the runtime daemon.",
+          attach: "POST /attach",
+          cdpHint:
+            "Start Chrome with --remote-debugging-port=9222 and pass cdpUrl http://127.0.0.1:9222",
+          plugins: runtime.listPlugins(),
+        });
       }
 
       if (method === "GET" && path === "/status") {
@@ -143,7 +165,7 @@ export function startDaemon(options: DaemonOptions): Server {
             fix: z.array(ActionSchema),
           })
           .parse(await readJson(req));
-        const saved = runtime.remember(body);
+        const saved = await runtime.remember(body);
         return sendJson(res, 200, { experience: saved });
       }
 

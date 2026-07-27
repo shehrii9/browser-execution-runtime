@@ -11,6 +11,12 @@
     "model": "llama3.2",
     "note": "apiKey is optional. Set null/omit for local providers."
   },
+  "embeddings": {
+    "apiBase": null,
+    "apiKey": null,
+    "model": "nomic-embed-text",
+    "note": "Leave apiBase null to use local hashing embeddings."
+  },
   "providers": {
     "ollama": {
       "apiBase": "http://127.0.0.1:11434/v1",

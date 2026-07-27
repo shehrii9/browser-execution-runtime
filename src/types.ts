@@ -210,7 +210,7 @@ export interface RuntimeStatus {
   memory: {
     l1SessionCached: boolean;
     l2ExperienceCount: number;
-    l3VectorIndex: "local_hashing_embeddings";
+    l3VectorIndex: string;
     l3VectorCount: number;
     engine: "typescript+sqlite";
   };

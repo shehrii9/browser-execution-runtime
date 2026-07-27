@@ -13,12 +13,12 @@ afterEach(() => {
 });
 
 describe("ExperienceStore", () => {
-  it("remembers and retrieves high-confidence fixes", () => {
+  it("remembers and retrieves high-confidence fixes", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ber-exp-"));
     const store = new ExperienceStore(join(dir, "experiences.db"));
     stores.push(store);
 
-    const saved = store.remember({
+    const saved = await store.remember({
       site: "shop.test",
       goal: "checkout",
       stateHash: "fp1",
@@ -29,7 +29,7 @@ describe("ExperienceStore", () => {
     expect(saved.confidence).toBe(1);
     expect(store.count()).toBe(1);
 
-    const found = store.findBest({
+    const found = await store.findBest({
       site: "shop.test",
       stateHash: "fp1",
       problem: "cookie_banner",

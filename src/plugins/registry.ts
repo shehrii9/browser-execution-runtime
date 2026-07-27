@@ -1,12 +1,24 @@
 import type { Action, SemanticState } from "../types.js";
 import type { ProblemKind } from "../recovery/engine.js";
+import { amazonPlugin } from "./amazon.js";
+import { authModalPlugin } from "./authModal.js";
 import { cookieConsentPlugin } from "./cookieConsent.js";
+import { githubPlugin } from "./github.js";
+import { googlePlugin } from "./google.js";
 import { pluginMatches, type SitePlugin } from "./types.js";
+
+export const DEFAULT_PLUGINS: SitePlugin[] = [
+  cookieConsentPlugin,
+  authModalPlugin,
+  githubPlugin,
+  googlePlugin,
+  amazonPlugin,
+];
 
 export class PluginRegistry {
   private readonly plugins: SitePlugin[] = [];
 
-  constructor(initial: SitePlugin[] = [cookieConsentPlugin]) {
+  constructor(initial: SitePlugin[] = DEFAULT_PLUGINS) {
     for (const plugin of initial) this.register(plugin);
   }
 
@@ -29,5 +41,13 @@ export class PluginRegistry {
       out.push(...fixes);
     }
     return out;
+  }
+
+  workflowsFor(domain: string): Record<string, Action[]> {
+    const merged: Record<string, Action[]> = {};
+    for (const plugin of this.forDomain(domain)) {
+      Object.assign(merged, plugin.workflows ?? {});
+    }
+    return merged;
   }
 }

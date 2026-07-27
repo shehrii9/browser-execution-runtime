@@ -8,8 +8,17 @@ export { createPolicy } from "./policy.js";
 export { ExperienceStore } from "./experience/store.js";
 export { SessionMemory } from "./memory/hierarchy.js";
 export { embedExperience, cosineSimilarity } from "./memory/embeddings.js";
-export { PluginRegistry } from "./plugins/registry.js";
+export {
+  HashingEmbedder,
+  NeuralEmbedder,
+  createEmbedderFromEnv,
+} from "./memory/embedder.js";
+export { PluginRegistry, DEFAULT_PLUGINS } from "./plugins/registry.js";
 export { cookieConsentPlugin } from "./plugins/cookieConsent.js";
+export { githubPlugin } from "./plugins/github.js";
+export { googlePlugin } from "./plugins/google.js";
+export { amazonPlugin } from "./plugins/amazon.js";
+export { authModalPlugin } from "./plugins/authModal.js";
 export {
   BuiltinPlanner,
   NoopComputerUseFallback,

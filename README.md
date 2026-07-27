@@ -21,7 +21,7 @@ Chrome / Chromium
 - **API key is optional** — omit it for local/no-auth providers
 - Standard HTTP daemon + OpenAI-style tool schemas anyone can register
 
-See [`INTEGRATING.md`](./INTEGRATING.md) for bring-your-own-model wiring.
+See [`INTEGRATING.md`](./INTEGRATING.md) and [`PUBLISHING.md`](./PUBLISHING.md).
 
 ## Features
 
@@ -30,10 +30,11 @@ See [`INTEGRATING.md`](./INTEGRATING.md) for bring-your-own-model wiring.
 - Builtin intents + optional LLM planner
 - Agent tool bridge (`browser_attach/execute/observe/...`)
 - Semantic page state + diffs
-- Recovery heuristics + site plugins
-- SQLite experience memory + local L3 embeddings
+- Recovery heuristics + site plugins (`cookie`, `auth-modal`, `github`, `google`, `amazon`)
+- SQLite experience memory + L3 embeddings (hash default, optional neural)
 - Multi-tab actions
 - Computer-use fallback cascade (optional)
+- Debug Chrome extension bridge (`extension/`)
 - Local HTTP daemon
 - Safety policy (domain allowlist, purchase blocking)
 
@@ -174,6 +175,9 @@ src/
 | `BER_LLM_API_BASE` | no | Any OpenAI-compatible planner endpoint |
 | `BER_LLM_API_KEY` | no | Only if provider needs auth |
 | `BER_LLM_MODEL` | no | Model name (default `llama3.2`) |
+| `BER_EMBEDDINGS_API_BASE` | no | Optional neural embeddings endpoint |
+| `BER_EMBEDDINGS_MODEL` | no | Embeddings model id |
+| `BER_EMBEDDINGS=hash` | no | Force local hashing embeddings |
 | `BER_URL` | no | Daemon URL for `call` |
 | `BER_HERMES_*` | no | Legacy aliases |
 
@@ -181,6 +185,13 @@ src/
 
 ```bash
 npm run bench:replay
+```
+
+## Debug extension
+
+```bash
+npm run daemon
+# Chrome → chrome://extensions → Load unpacked → ./extension
 ```
 
 ## License

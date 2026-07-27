@@ -1,13 +1,23 @@
 {
   "name": "browser-execution-runtime",
   "version": "0.1.0",
-  "description": "Deterministic browser execution runtime for AI agents (Hermes motor)",
+  "description": "Open provider-agnostic browser execution runtime for AI agents. No API key required.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
     "ber": "dist/cli.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "INTEGRATING.md",
+    "PUBLISHING.md",
+    "examples",
+    "extension",
+    "sdk/python"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -25,18 +35,23 @@
     "hermes-tools": "tsx src/cli.ts tools",
     "bench:replay": "tsx benchmarks/experience-replay.ts",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "npm test && npm run build"
   },
   "keywords": [
     "browser",
     "cdp",
     "agent",
-    "hermes",
     "automation",
-    "runtime"
+    "runtime",
+    "openai-compatible",
+    "playwright"
   ],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "better-sqlite3": "^13.0.1",
     "playwright": "^1.62.0",

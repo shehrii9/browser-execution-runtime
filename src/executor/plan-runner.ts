@@ -202,7 +202,7 @@ export class PlanRunner {
     const problem = classifyProblem(input.error, input.state);
     let llmCallsAvoided = 0;
 
-    const remembered = this.experiences.findBest({
+    const remembered = await this.experiences.findBest({
       site: input.state.domain,
       stateHash: input.state.fingerprint,
       problem,
@@ -251,7 +251,7 @@ export class PlanRunner {
         };
       }
 
-      const saved = this.experiences.remember({
+      const saved = await this.experiences.remember({
         site: input.state.domain,
         goal: input.goal,
         stateHash: input.state.fingerprint,

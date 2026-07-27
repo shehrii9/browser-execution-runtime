@@ -48,10 +48,11 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the He
 | Resume failed run | Done |
 | Computer-use fallback hook | Done (noop by default) |
 | Vector similarity (L3) | Done (local hashing embeddings + cosine in SQLite) |
-| Site plugins | Done (registry + cookie-consent plugin) |
+| Site plugins | Done (cookie/auth/github/google/amazon) |
 | Multi-tab | Done (new/switch/close tab actions + API) |
 | Event bus | Not yet |
-| Chrome extension bridge | Not yet (intentionally later) |
+| Chrome extension bridge | Done (attach-only debug extension) |
+| Optional neural embeddings | Done (`NeuralEmbedder`, hash fallback) |
 | Rust core / Python SDK | Not yet (intentionally later) |
 | Full Hermes LLM planner adapter | Done as generic `LlmPlanner` (OpenAI-compatible, key optional) |
 | Hermes tool bridge/client | Done as generic `ToolBridge` / `AGENT_TOOLS` |

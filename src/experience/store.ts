@@ -4,9 +4,13 @@ import { dirname } from "node:path";
 import {
   bufferToVector,
   cosineSimilarity,
-  embedExperience,
   vectorToBuffer,
 } from "../memory/embeddings.js";
+import {
+  HashingEmbedder,
+  experienceText,
+  type Embedder,
+} from "../memory/embedder.js";
 import type { Action, ExperienceRecord } from "../types.js";
 
 export interface RememberInput {
@@ -32,8 +36,10 @@ export interface FindBestInput {
 
 export class ExperienceStore {
   private readonly db: Database.Database;
+  private readonly embedder: Embedder;
 
-  constructor(dbPath: string) {
+  constructor(dbPath: string, embedder: Embedder = new HashingEmbedder()) {
+    this.embedder = embedder;
     mkdirSync(dirname(dbPath), { recursive: true });
     this.db = new Database(dbPath);
     this.db.pragma("journal_mode = WAL");
@@ -82,6 +88,10 @@ export class ExperienceStore {
     }
   }
 
+  embedderId(): string {
+    return this.embedder.id;
+  }
+
   count(): number {
     const row = this.db.prepare("SELECT COUNT(*) AS c FROM experiences").get() as {
       c: number;
@@ -96,7 +106,7 @@ export class ExperienceStore {
     return row.c;
   }
 
-  remember(input: RememberInput): ExperienceRecord {
+  async remember(input: RememberInput): Promise<ExperienceRecord> {
     const existing = this.db
       .prepare(
         `SELECT * FROM experiences
@@ -109,13 +119,15 @@ export class ExperienceStore {
     const signals = input.signals ?? [];
     const signalsJson = JSON.stringify(signals);
     const embedding = vectorToBuffer(
-      embedExperience({
-        site: input.site,
-        problem: input.problem,
-        pageHint,
-        signals,
-        goal: input.goal,
-      }),
+      await this.embedder.embed(
+        experienceText({
+          site: input.site,
+          problem: input.problem,
+          pageHint,
+          signals,
+          goal: input.goal,
+        }),
+      ),
     );
 
     if (existing) {
@@ -171,7 +183,7 @@ export class ExperienceStore {
     return this.get(Number(result.lastInsertRowid))!;
   }
 
-  findBest(input: FindBestInput): ExperienceRecord | null {
+  async findBest(input: FindBestInput): Promise<ExperienceRecord | null> {
     const exact = this.db
       .prepare(
         `SELECT * FROM experiences
@@ -187,13 +199,15 @@ export class ExperienceStore {
       | undefined;
     if (exact) return mapRow(exact);
 
-    const queryVec = embedExperience({
-      site: input.site,
-      problem: input.problem,
-      pageHint: input.pageHint,
-      signals: input.signals,
-      goal: input.goal,
-    });
+    const queryVec = await this.embedder.embed(
+      experienceText({
+        site: input.site,
+        problem: input.problem,
+        pageHint: input.pageHint,
+        signals: input.signals,
+        goal: input.goal,
+      }),
+    );
 
     const candidates = this.db
       .prepare(
@@ -297,6 +311,12 @@ function pickBest(
   let best: { row: DbRow; score: number } | null = null;
 
   for (const row of rows) {
+    // Skip incompatible vector dims (hash vs neural).
+    if (row.embedding) {
+      const vec = bufferToVector(row.embedding);
+      if (vec.length !== queryVec.length) continue;
+    }
+
     const signals = safeJsonArray(row.signals_json);
     const overlap = jaccard(input.signals ?? [], signals);
     const pageBonus = input.pageHint && row.page_hint === input.pageHint ? 0.12 : 0;
