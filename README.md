@@ -53,7 +53,7 @@ This project is a **local execution wrapper**:
 - **Deterministic plans** — `navigate`, `click`, `type`, `wait`, `extract`, …
 - **Semantic page state** — roles/text/signals instead of raw HTML dumps
 - **State diffs** — cheap context for agents
-- **Self-healing recovery** — cookie banners, overlays, retries
+- **Self-healing recovery** — cookie banners, overlays, retries; typed modals (`modal:login`, `modal:otp`, `modal:payment`, …)
 - **Experience memory** — SQLite store of problem → fix (+ confidence)
 - **L3 similarity** — local hashing embeddings by default; optional neural `/embeddings`
 - **Site plugins** — `cookie-consent`, `auth-modal`, `github`, `google`, `amazon`, `media-sites`, `content-sites`
