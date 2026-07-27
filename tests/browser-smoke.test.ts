@@ -103,6 +103,124 @@ describe.sequential("browser smoke (Playwright)", () => {
   );
 
   it(
+    "login fixture: modal:login and plan can sign in",
+    async () => {
+      const server = await startFixtureServer({ "/login": "login-local.html" });
+      const runtime = new BrowserRuntime({
+        dataDir: tempDataDir(),
+        policy: { headless: smokeHeadless(), maxRecoveries: 2 },
+      });
+      const url = server.url("/login");
+      const plan = {
+        goal: "sign in on demo app",
+        steps: [
+          { action: { type: "navigate" as const, url } },
+          {
+            action: {
+              type: "type" as const,
+              target: { placeholder: "Email" },
+              text: "agent@example.com",
+            },
+          },
+          {
+            action: {
+              type: "type" as const,
+              target: { placeholder: "Password" },
+              text: "secret",
+            },
+          },
+          {
+            action: {
+              type: "click" as const,
+              target: { role: "button", name: "Continue" },
+            },
+          },
+          { action: { type: "wait" as const, text: "Signed in" } },
+        ],
+      };
+      try {
+        const state = await runtime.attach({ startUrl: url });
+        expect(state.signals).toContain("modal:login");
+        expect(state.signals).toContain("password_field");
+        const result = await runtime.run(plan);
+        expect(result.ok).toBe(true);
+      } finally {
+        await runtime.close();
+        await server.close();
+      }
+    },
+    90_000,
+  );
+
+  it(
+    "otp fixture: modal:otp and agent-supplied code",
+    async () => {
+      const server = await startFixtureServer({ "/verify": "otp-local.html" });
+      const runtime = new BrowserRuntime({
+        dataDir: tempDataDir(),
+        policy: { headless: smokeHeadless(), maxRecoveries: 2 },
+      });
+      const url = server.url("/verify");
+      const code = process.env.BER_TEST_OTP ?? "123456";
+      const plan = {
+        goal: "complete otp",
+        steps: [
+          { action: { type: "navigate" as const, url } },
+          {
+            action: {
+              type: "type" as const,
+              target: { placeholder: "Enter verification code" },
+              text: code,
+            },
+          },
+          {
+            action: {
+              type: "click" as const,
+              target: { role: "button", name: "Verify" },
+            },
+          },
+          { action: { type: "wait" as const, text: "Verified" } },
+        ],
+      };
+      try {
+        const state = await runtime.attach({ startUrl: url });
+        expect(state.signals).toContain("modal:otp");
+        const result = await runtime.run(plan);
+        expect(result.ok).toBe(true);
+      } finally {
+        await runtime.close();
+        await server.close();
+      }
+    },
+    90_000,
+  );
+
+  it(
+    "payment confirm fixture: detects modal:payment without auto pay",
+    async () => {
+      const server = await startFixtureServer({ "/cart": "payment-confirm-local.html" });
+      const runtime = new BrowserRuntime({
+        dataDir: tempDataDir(),
+        policy: { headless: smokeHeadless(), maxRecoveries: 1, allowPurchase: false },
+      });
+      try {
+        const state = await runtime.attach({ startUrl: server.url("/cart") });
+        expect(state.signals).toContain("modal:payment");
+        const blocked = await runtime.act({
+          type: "click",
+          target: { role: "button", name: "Pay now" },
+        });
+        expect(blocked.ok).toBe(false);
+        expect(blocked.error).toMatch(/blocked by policy/i);
+      } finally {
+        await runtime.close();
+        await server.close();
+      }
+    },
+    60_000,
+  );
+
+  it(
     "media fixture: watch hint and video_player signal",
     async () => {
       const server = await startFixtureServer({

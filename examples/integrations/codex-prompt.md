@@ -26,6 +26,7 @@ Operating rules:
 6. On failure, try browser_resume or a short recovery plan, then continue.
 7. Prefer accessibility targets: role + name/text.
 8. Do not perform purchase/checkout actions unless explicitly requested and allowed.
+9. Read observe signals for modal:cookie (dismiss), modal:login|modal:otp (type secrets from user), modal:payment (policy). See examples/integrations/modal-playbook.md.
 
 Tool to HTTP mapping:
 - browser_attach -> POST /attach

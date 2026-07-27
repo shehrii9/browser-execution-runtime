@@ -58,7 +58,7 @@ export const AGENT_TOOLS = [
     function: {
       name: "browser_observe",
       description:
-        "Return compact semantic browser state (not screenshots) for cheap reasoning.",
+        "Return compact semantic browser state (roles, signals, modal:cookie|login|otp|payment, diffs). Not screenshots.",
       parameters: { type: "object", properties: {} },
     },
   },
@@ -66,7 +66,8 @@ export const AGENT_TOOLS = [
     type: "function",
     function: {
       name: "browser_diff",
-      description: "Return what changed since the last observation.",
+      description:
+        "Return URL/title/signal/button/dialog changes since last observe (use after actions).",
       parameters: { type: "object", properties: {} },
     },
   },

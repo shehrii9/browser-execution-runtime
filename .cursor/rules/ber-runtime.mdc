@@ -23,6 +23,16 @@ When the user asks to control a browser, open pages, click, type, extract web co
 6. On failure: `browser_resume` or recover, then continue
 7. Only fall back to computer-use/vision if BER recovery fails repeatedly
 
+## Modals (login, OTP, cookies, payment)
+
+After `browser_observe`, read `signals`:
+
+- `modal:cookie` / `cookie_banner` → `dismiss_overlays` or recovery
+- `modal:login` / `modal:otp` → **type** user-provided secrets; recovery will not dismiss
+- `modal:payment` → only if user requested purchase and policy allows
+
+Full playbook: `examples/integrations/modal-playbook.md`
+
 ## Tool → HTTP map
 
 - `browser_attach` → `POST /attach`

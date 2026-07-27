@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Checkout — Demo Shop</title>
+    <style>
+      #paywall {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .panel {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 8px;
+        width: 280px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Demo Shop</h1>
+    <p>Cart total: $9.99</p>
+    <div id="paywall">
+      <div class="panel" role="dialog" aria-label="Confirm payment">
+        <p>Confirm your payment method.</p>
+        <button type="button">Pay now</button>
+        <button type="button">Cancel</button>
+      </div>
+    </div>
+  </body>
+</html>

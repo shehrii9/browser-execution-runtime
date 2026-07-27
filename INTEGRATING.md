@@ -108,6 +108,10 @@ npm run dev -- doctor
 | `BER_LLM_API_KEY` | no | Only if your provider needs auth |
 | `BER_LLM_MODEL` | no | Model id (default `llama3.2`) |
 | `BER_URL` | no | Daemon URL for tool bridge |
+| `BER_DIALOG_PROMPT_DEFAULT` | no | Text for native `prompt()` (e.g. OTP) |
+| `BER_AUTO_DISMISS_DIALOGS` | no | Set `0` to disable native alert/confirm handling |
+| `BER_AUTO_FOCUS_POPUP_TABS` | no | Set `0` to stop auto-switching to `window.open` tabs |
+| `BER_AUTO_DISMISS_NATIVE_CONFIRM` | no | Set `1` to auto-accept risky native `confirm()` |
 | `BER_HERMES_*` | no | Legacy aliases for Hermes users |
 
 See `examples/ber.config.example.json` for provider examples.
@@ -147,3 +151,21 @@ client = BrowserRuntimeClient()
 print(client.health())
 PY
 ```
+
+## Modals, login, OTP, and URL changes
+
+BER classifies **DOM overlays** and exposes them in `observe` → `signals` (`modal:cookie`, `modal:login`, `modal:otp`, `modal:payment`, …). It **auto-dismisses safe** banners (cookie/newsletter) but **not** login, OTP, or payment without your plan.
+
+**Agent playbook (copy for Cursor/Codex):**
+
+- [`examples/integrations/modal-playbook.md`](./examples/integrations/modal-playbook.md)
+
+Quick flow:
+
+1. `browser_attach` → `browser_observe` — read `signals` and `dialogs`
+2. Cookie/newsletter → `dismiss_overlays` or recovery
+3. Login/OTP → explicit `type` steps with user-provided secrets (never hardcode in repo)
+4. After actions → `browser_diff` for `urlChanged` and signal deltas
+5. Failure → `browser_resume` or short recovery plan
+
+Env for native JS `prompt()` OTP: `BER_DIALOG_PROMPT_DEFAULT`. See playbook for full policy table.

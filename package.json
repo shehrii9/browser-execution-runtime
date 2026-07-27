@@ -1,6 +1,6 @@
 {
   "name": "browser-execution-runtime",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Open provider-agnostic browser execution runtime for AI agents. No API key required.",
   "type": "module",
   "main": "dist/index.js",
