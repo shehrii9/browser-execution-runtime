@@ -37,7 +37,8 @@ export function buildSignals(state: Omit<SemanticState, "fingerprint" | "observe
     state.pageHint === "watch" ||
     state.pageHint === "results" ||
     state.pageHint === "shorts" ||
-    state.pageHint === "media_home"
+    state.pageHint === "media_home" ||
+    state.pageHint === "article"
   ) {
     signals.add(`hint:${state.pageHint}`);
   }
@@ -103,6 +104,15 @@ export function pageHintFromUrl(url: string, title: string): string {
     if (path.includes("checkout") || path.includes("cart")) return "checkout";
     if (path.includes("login") || path.includes("signin")) return "login";
     if (path.includes("search") || u.searchParams.has("q")) return "search";
+    if (
+      path.includes("/news/") ||
+      path.includes("/article") ||
+      path.includes("/story") ||
+      path.includes("/blog/") ||
+      path.includes("/wiki/")
+    ) {
+      return "article";
+    }
     if (path.includes("/watch") || path.includes("/video") || path.includes("/listen")) {
       return "watch";
     }

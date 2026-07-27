@@ -21,7 +21,7 @@ describe("PluginRegistry", () => {
     expect(fixes.length).toBeGreaterThan(0);
     expect(fixes[0]?.[0]?.type).toBe("dismiss_overlays");
     expect(registry.list().map((p) => p.id)).toEqual(
-      expect.arrayContaining(["cookie-consent", "media-sites"]),
+      expect.arrayContaining(["cookie-consent", "media-sites", "content-sites"]),
     );
   });
 });

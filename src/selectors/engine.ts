@@ -1,7 +1,7 @@
-import type { FrameLocator, Locator, Page } from "playwright";
+import type { Frame, FrameLocator, Locator, Page } from "playwright";
 import type { TargetRef } from "../types.js";
 
-type Scope = Page | FrameLocator;
+type Scope = Page | Frame | FrameLocator;
 
 export class SelectorEngine {
   constructor(private readonly page: Page) {}
@@ -10,6 +10,7 @@ export class SelectorEngine {
     const scope = this.resolveScope(target);
     let locator: Locator | undefined;
 
+    // Prefer role/text (a11y tree) — often reaches into shadow trees better than raw CSS.
     if (target.css) {
       locator = scope.locator(target.css);
     } else if (target.testId) {
@@ -52,15 +53,48 @@ export class SelectorEngine {
     }
   }
 
+  /**
+   * Resolve action scope.
+   * Prefer Playwright Frame objects (works for cross-origin) when frameUrl/name/index set.
+   * Fall back to frameLocator CSS for same-document iframe selectors.
+   */
   private resolveScope(target: TargetRef): Scope {
+    if (typeof target.frameIndex === "number") {
+      const frames = this.page.frames();
+      const frame = frames[target.frameIndex];
+      if (!frame) {
+        throw new Error(
+          `frameIndex ${target.frameIndex} out of range (frames=${frames.length})`,
+        );
+      }
+      return frame;
+    }
+
+    if (target.frameName) {
+      const frame =
+        this.page.frame({ name: target.frameName }) ??
+        this.page.frames().find((f) => f.name() === target.frameName);
+      if (frame) return frame;
+    }
+
+    if (target.frameUrl) {
+      const needle = target.frameUrl.toLowerCase();
+      const frame = this.page
+        .frames()
+        .find(
+          (f) =>
+            f !== this.page.mainFrame() &&
+            f.url().toLowerCase().includes(needle),
+        );
+      if (frame) return frame;
+      // Fallback: iframe src attribute locator (same-origin / src-visible cases).
+      return this.page.frameLocator(`iframe[src*="${cssAttrEscape(target.frameUrl)}"]`);
+    }
+
     if (target.frame) {
       return this.page.frameLocator(target.frame);
     }
-    if (target.frameUrl) {
-      const needle = target.frameUrl;
-      // Playwright frameLocator by URL-containing src attribute.
-      return this.page.frameLocator(`iframe[src*="${cssAttrEscape(needle)}"]`);
-    }
+
     return this.page;
   }
 }

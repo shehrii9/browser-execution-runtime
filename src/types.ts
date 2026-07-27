@@ -10,8 +10,12 @@ export const TargetRefSchema = z.object({
   nth: z.number().int().nonnegative().optional(),
   /** Iframe CSS selector, e.g. "iframe#consent" or "iframe[src*='consent']". */
   frame: z.string().optional(),
-  /** Match iframe by URL substring when CSS is unknown. */
+  /** Match iframe by URL substring (Playwright frame tree — works cross-origin). */
   frameUrl: z.string().optional(),
+  /** Match iframe by frame name. */
+  frameName: z.string().optional(),
+  /** Match iframe by index in page.frames() (0 = main). */
+  frameIndex: z.number().int().nonnegative().optional(),
 });
 
 export type TargetRef = z.infer<typeof TargetRefSchema>;

@@ -40,7 +40,7 @@ Return ONLY valid JSON matching this schema:
     }
   ]
 }
-Target = {"role"?:string,"name"?:string,"text"?:string,"placeholder"?:string,"css"?:string,"testId"?:string,"nth"?:number,"frame"?:string,"frameUrl"?:string}
+Target = {"role"?:string,"name"?:string,"text"?:string,"placeholder"?:string,"css"?:string,"testId"?:string,"nth"?:number,"frame"?:string,"frameUrl"?:string,"frameName"?:string,"frameIndex"?:number}
 
 Rules:
 - Prefer role/name/text targets over brittle CSS.

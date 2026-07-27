@@ -49,6 +49,22 @@ describe("iframe targets", () => {
   it("builds frame-scoped locators without throwing", () => {
     // Minimal page stub — only resolveScope/locate construction matters here.
     const page = {
+      mainFrame: () => ({ url: () => "https://example.com" }),
+      frames: () => [
+        { url: () => "https://example.com", name: () => "" },
+        { url: () => "https://consent.example/cmp", name: () => "cmp", getByRole: () => ({ first: () => ({}) }), getByText: () => ({ first: () => ({}) }), getByPlaceholder: () => ({ first: () => ({}) }), getByTestId: () => ({ first: () => ({}) }), getByLabel: () => ({ first: () => ({}) }), locator: () => ({ first: () => ({}) }) },
+      ],
+      frame: ({ name }: { name: string }) =>
+        name === "cmp"
+          ? {
+              getByRole: () => ({ first: () => ({}) }),
+              locator: () => ({ first: () => ({}) }),
+              getByTestId: () => ({ first: () => ({}) }),
+              getByPlaceholder: () => ({ first: () => ({}) }),
+              getByText: () => ({ first: () => ({}) }),
+              getByLabel: () => ({ first: () => ({}) }),
+            }
+          : null,
       frameLocator: (sel: string) => ({
         getByRole: () => ({ first: () => ({}) }),
         locator: () => ({ first: () => ({}) }),
@@ -73,6 +89,12 @@ describe("iframe targets", () => {
     ).not.toThrow();
     expect(() =>
       engine.locate({ text: "OK", frameUrl: "consent" }),
+    ).not.toThrow();
+    expect(() =>
+      engine.locate({ role: "button", name: "Accept", frameName: "cmp" }),
+    ).not.toThrow();
+    expect(() =>
+      engine.locate({ role: "button", name: "Accept", frameIndex: 1 }),
     ).not.toThrow();
   });
 });

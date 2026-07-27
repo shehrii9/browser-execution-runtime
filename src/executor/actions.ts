@@ -213,16 +213,33 @@ async function dismissCommonOverlays(page: Page): Promise<void> {
     /got it/i,
     /close/i,
     /no thanks/i,
+    /not now/i,
     /reject all/i,
     /skip ad/i,
+    /skip intro/i,
     /^skip$/i,
   ];
 
-  const scopes = [page as Page | ReturnType<Page["frameLocator"]>, page.frameLocator("iframe")];
-  // Also try common consent iframe patterns.
-  scopes.push(page.frameLocator("iframe[id*='consent' i]"));
-  scopes.push(page.frameLocator("iframe[src*='consent' i]"));
-  scopes.push(page.frameLocator("iframe[title*='consent' i]"));
+  const scopes: Array<Page | ReturnType<Page["frameLocator"]> | import("playwright").Frame> = [
+    page,
+    page.frameLocator("iframe"),
+    page.frameLocator("iframe[id*='consent' i]"),
+    page.frameLocator("iframe[src*='consent' i]"),
+    page.frameLocator("iframe[title*='consent' i]"),
+  ];
+  // Cross-origin consent frames: use Playwright frame tree (URL match).
+  for (const frame of page.frames()) {
+    if (frame === page.mainFrame()) continue;
+    const url = frame.url().toLowerCase();
+    if (
+      url.includes("consent") ||
+      url.includes("cookie") ||
+      url.includes("privacymanager") ||
+      url.includes("cmp")
+    ) {
+      scopes.push(frame);
+    }
+  }
 
   for (const scope of scopes) {
     for (const name of names) {
@@ -237,7 +254,7 @@ async function dismissCommonOverlays(page: Page): Promise<void> {
       }
     }
     try {
-      const byText = scope.getByText(/skip ad/i);
+      const byText = scope.getByText(/skip ad|skip intro/i);
       if (await byText.first().isVisible({ timeout: 200 })) {
         await byText.first().click({ timeout: 1000 });
       }

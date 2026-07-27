@@ -48,12 +48,13 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the ag
 | Resume failed run | Done |
 | Computer-use fallback hook | Done (noop by default; vision/LLM when configured) |
 | Vector similarity (L3) | Done (local hashing embeddings + cosine in SQLite) |
-| Site plugins | Done (cookie/auth/github/google/amazon/media-sites) |
+| Site plugins | Done (cookie/auth/github/google/amazon/media-sites/content-sites) |
 | Multi-tab | Done (new/switch/close tab actions + API) |
 | Dynamic page settle (SPA/AJAX) | Done (`settlePage`, wait.settle, post navigate/click) |
 | Infinite scroll waits | Done (`scroll` + `untilText` / `untilCss` / `untilCountAtLeast`) |
 | Media-site handling | Done (generic plugin for video/audio hosts + watch/results hints) |
 | Media actions | Done (`media` play/pause/mute/skip_ad/fullscreen for video+audio) |
+| Content/article sites | Done (`content-sites` plugin + `article` page hint) |
 | One-command startup | Done (`npm start`) |
 | Event bus | Done (`EventBus`, `GET /events`, SSE `/events/stream`) |
 | Chrome extension bridge | Done (attach-only debug extension) |
@@ -66,20 +67,22 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the ag
 | Experience replay benchmark | Done (`npm run bench:replay`) |
 | Provider-agnostic / no required API key | Done |
 | Plugin workflows wired into planner | Done (`run <workflow> on <domain>`, media open/search/ready_player) |
-| Iframe-aware targets | Done (`target.frame` / `target.frameUrl` + same-origin observe) |
+| Iframe-aware targets | Done (`frame` / `frameUrl` / `frameName` / `frameIndex`; observe walks frame tree) |
+| CI | Done (GitHub Actions: typecheck, test, build, pack:check) |
 
 ---
 
-## Dynamic pages & media sites (current behavior)
+## Dynamic pages, frames & media sites (current behavior)
 
 **Dynamic / SPA pages**
 - After `navigate` / `click`, runtime waits for a short DOM-stable window (`settlePage`).
 - Plans can use `{ "type": "wait", "settle": true }` or `networkIdle: true`.
 - Observe walks **open shadow roots** and includes headings/video/audio nodes.
+- Observe also evaluates **every Playwright frame** (cross-origin child frames included when CDP allows).
 - Expect failures get one settle + recovery retry (not instant fail).
-- Targets can scope into iframes via `frame` / `frameUrl`.
-- Same-origin iframe contents are included in observe when reachable.
-- Still no MutationObserver stream / closed-shadow piercing / cross-origin iframe DOM.
+- Targets can scope into iframes via `frame` / `frameUrl` / `frameName` / `frameIndex`.
+- Prefer role/name targets: Playwright a11y locators often reach into shadow UI better than CSS.
+- Still no true closed-shadow DOM piercing and no MutationObserver push stream.
 
 **Media sites (video/audio)**
 - `media-sites` plugin covers common hosts (YouTube, Vimeo, Twitch, Dailymotion, Rumble, SoundCloud, Spotify web, TikTok, …).
@@ -89,6 +92,11 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the ag
 - Actions: `{ "type": "media", "command": "play"|"pause"|"skip_ad"|… }` operate on the largest visible `<video>`/`<audio>`.
 - Limits: no DRM scrubbing, closed shadow / canvas-only controls may stay invisible; login walls need the user/agent.
 - YouTube was only the first example host — not the product scope.
+
+**Content / article sites**
+- `content-sites` plugin: BBC, CNN, NYTimes, Guardian, Reuters, Wikipedia, Medium, Substack, …
+- Workflows: `read_article`, `dismiss_chrome`
+- Page hint: `article`
 
 ---
 
