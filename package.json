@@ -1,6 +1,6 @@
 {
   "name": "browser-execution-runtime",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Open provider-agnostic browser execution runtime for AI agents. No API key required.",
   "type": "module",
   "main": "dist/index.js",
@@ -40,6 +40,8 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "pack:check": "npm pack --dry-run",
+    "rust:test": "cargo test -p ber-core",
+    "rust:build": "cargo build -p ber-core --release",
     "prepublishOnly": "npm test && npm run build && npm run pack:check"
   },
   "repository": {

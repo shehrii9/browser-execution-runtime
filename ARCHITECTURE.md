@@ -59,7 +59,9 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the ag
 | Event bus | Done (`EventBus`, `GET /events`, SSE `/events/stream`) |
 | Chrome extension bridge | Done (attach-only debug extension) |
 | Optional neural embeddings | Done (`NeuralEmbedder`, hash fallback) |
-| Rust core | Not yet (intentionally later) |
+| Rust core | Scaffolded (`crates/ber-core`: fingerprint + hashing embed + CLI; TS still default) |
+| Closed-shadow pierce | Done (CDP `DOM.getDocument` pierce during observe; disable with `BER_PIERCE_SHADOW=0`) |
+| Publish automation | Done (tag-triggered Release workflow for npm/PyPI/`ber-core` artifact) |
 | Python SDK | Done (HTTP client parity with daemon: diff/act/tabs/events/policy/…) |
 | Full Hermes LLM planner adapter | Done as generic `LlmPlanner` (OpenAI-compatible, key optional) |
 | Hermes tool bridge/client | Done as generic `ToolBridge` / `AGENT_TOOLS` |
@@ -82,7 +84,13 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the ag
 - Expect failures get one settle + recovery retry (not instant fail).
 - Targets can scope into iframes via `frame` / `frameUrl` / `frameName` / `frameIndex`.
 - Prefer role/name targets: Playwright a11y locators often reach into shadow UI better than CSS.
-- Still no true closed-shadow DOM piercing and no MutationObserver push stream.
+- Closed shadow: observe merges CDP-pierced interactive nodes (`shadow_pierced` signal). Still imperfect for canvas-only UIs.
+- Still no MutationObserver push stream.
+
+**Rust core (experimental)**
+- Crate: `crates/ber-core` — fingerprint + hashing embeddings + `ber-core` CLI
+- TypeScript remains the execution kernel; set `BER_RUST_CORE=1` to try Rust fingerprints when the binary is on `PATH`
+- CI runs `cargo test -p ber-core`
 
 **Media sites (video/audio)**
 - `media-sites` plugin covers common hosts (YouTube, Vimeo, Twitch, Dailymotion, Rumble, SoundCloud, Spotify web, TikTok, …).

@@ -61,6 +61,8 @@ This project is a **local execution wrapper**:
 - **Infinite scroll** — `scroll` with `untilText` / `untilCss` / `untilCountAtLeast`
 - **Media actions** — `media` play/pause/mute/skip_ad for video/audio sites
 - **Cross-origin frames** — `frameUrl` / `frameName` / `frameIndex` via Playwright frame tree
+- **Closed-shadow pierce** — CDP pierce during observe (`BER_PIERCE_SHADOW=0` to disable)
+- **Rust core (experimental)** — `crates/ber-core` fingerprint/embed CLI
 - **Event bus** — step/recovery/run events via `GET /events` or SSE stream
 - **Iframe targets** — `frame` / `frameUrl` for consent CMPs and nested UI
 - **Open tool bridge** — OpenAI-style `browser_*` tools any agent can register

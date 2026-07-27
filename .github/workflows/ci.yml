@@ -25,3 +25,16 @@ jobs:
         run: npm run build
       - name: Pack check
         run: npm run pack:check
+
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+      - name: Test ber-core
+        run: cargo test -p ber-core
+      - name: Build ber-core
+        run: cargo build -p ber-core

@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = ["crates/ber-core"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+authors = ["Shahryar Ahmad"]
+repository = "https://github.com/shehrii9/browser-execution-runtime"
