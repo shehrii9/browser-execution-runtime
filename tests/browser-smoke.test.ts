@@ -11,16 +11,21 @@ function tempDataDir(): string {
   return mkdtempSync(join(tmpdir(), "ber-smoke-"));
 }
 
+/** CI uses headless; set BER_HEADLESS=0 + DISPLAY=:1 for headed desktop runs. */
+function smokeHeadless(): boolean {
+  return process.env.BER_HEADLESS !== "0";
+}
+
 describe.sequential("browser smoke (Playwright)", () => {
   beforeAll(async () => {
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: smokeHeadless() });
     await browser.close();
   }, 120_000);
 
   it(
     "observe example.com returns two named nodes (no pierce duplicates)",
     async () => {
-      const browser = await chromium.launch({ headless: true });
+      const browser = await chromium.launch({ headless: smokeHeadless() });
       const page = await browser.newPage();
       await page.goto("https://example.com", { waitUntil: "domcontentloaded" });
       const state = await observePage(page);
@@ -39,7 +44,7 @@ describe.sequential("browser smoke (Playwright)", () => {
       const server = await startFixtureServer({ "/": "cookie-shop.html" });
       const runtime = new BrowserRuntime({
         dataDir: tempDataDir(),
-        policy: { headless: true, maxRecoveries: 4, allowPurchase: true },
+        policy: { headless: smokeHeadless(), maxRecoveries: 4, allowPurchase: true },
       });
 
       const url = server.url("/");
@@ -78,7 +83,7 @@ describe.sequential("browser smoke (Playwright)", () => {
       });
       const runtime = new BrowserRuntime({
         dataDir: tempDataDir(),
-        policy: { headless: true, maxRecoveries: 2 },
+        policy: { headless: smokeHeadless(), maxRecoveries: 2 },
       });
 
       try {
@@ -105,7 +110,7 @@ describe.sequential("browser smoke (Playwright)", () => {
       });
       const runtime = new BrowserRuntime({
         dataDir: tempDataDir(),
-        policy: { headless: true, maxRecoveries: 2 },
+        policy: { headless: smokeHeadless(), maxRecoveries: 2 },
       });
 
       try {
