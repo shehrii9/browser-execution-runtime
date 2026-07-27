@@ -57,11 +57,19 @@ describe("modal kind inference", () => {
 
   it("flags payment and newsletter modals", () => {
     const pay = baseState({
-      dialogs: ["Checkout"],
+      dialogs: ["Confirm payment"],
       buttons: ["Pay now"],
       signals: ["has_dialog", "checkout_available"],
     });
     expect(inferModalKinds(pay)).toContain("payment");
+
+    const cookieShop = baseState({
+      dialogs: ["cookie"],
+      buttons: ["Checkout", "Accept all"],
+      signals: ["has_dialog", "cookie_banner", "checkout_available"],
+    });
+    expect(inferModalKinds(cookieShop)).toContain("cookie");
+    expect(inferModalKinds(cookieShop)).not.toContain("payment");
 
     const news = baseState({
       dialogs: ["Subscribe"],

@@ -15,7 +15,7 @@ const LOGIN_RE =
 const OTP_RE =
   /\b(otp|one[- ]time|verification code|verify code|enter code|2fa|two[- ]factor|authenticator|sms code|security code)\b/i;
 const PAYMENT_RE =
-  /\b(checkout|pay now|place order|confirm purchase|billing|card number|payment method)\b/i;
+  /\b(pay now|place order|confirm purchase|billing|card number|payment method)\b/i;
 const NEWSLETTER_RE =
   /\b(newsletter|subscribe|stay updated|get updates|join our mailing)\b/i;
 
@@ -72,10 +72,14 @@ export function inferModalKinds(
   ) {
     kinds.add("login");
   }
+  const dialogText = [...state.dialogs, state.title].join(" ");
+  const payButton = state.buttons.some((b) =>
+    /\b(pay now|place order|confirm purchase|card number)\b/i.test(b),
+  );
   if (
-    state.signals.includes("checkout_available") ||
-    state.pageHint === "checkout" ||
-    PAYMENT_RE.test(text)
+    PAYMENT_RE.test(dialogText) ||
+    payButton ||
+    (state.pageHint === "checkout" && hasDialog && !kinds.has("cookie"))
   ) {
     kinds.add("payment");
   }

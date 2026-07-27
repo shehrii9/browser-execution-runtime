@@ -15,6 +15,9 @@ export function classifyProblem(error: string, state?: SemanticState): ProblemKi
   const msg = error.toLowerCase();
   const modalKinds = state ? inferModalKinds(state) : [];
 
+  if (state?.signals.includes("cookie_banner") || /cookie|consent/.test(msg)) {
+    return "cookie_banner";
+  }
   if (modalKinds.includes("otp") || state?.signals.some((s) => s === "modal:otp")) {
     return "otp_required";
   }
@@ -27,8 +30,7 @@ export function classifyProblem(error: string, state?: SemanticState): ProblemKi
   }
   if (
     modalKinds.includes("payment") ||
-    state?.signals.includes("modal:payment") ||
-    state?.signals.includes("checkout_available")
+    state?.signals.includes("modal:payment")
   ) {
     if (/purchase|blocked by policy/i.test(msg)) {
       return "payment_confirm";
@@ -36,9 +38,6 @@ export function classifyProblem(error: string, state?: SemanticState): ProblemKi
     if (state?.signals.includes("has_dialog") || state?.dialogs.length) {
       return "payment_confirm";
     }
-  }
-  if (state?.signals.includes("cookie_banner") || /cookie|consent/.test(msg)) {
-    return "cookie_banner";
   }
   if (
     state?.dialogs.length ||
