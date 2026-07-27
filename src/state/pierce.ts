@@ -61,7 +61,8 @@ function walkCdp(
 
   const tag = (node.localName || node.nodeName || "").toLowerCase();
   const attrs = attrMap(node.attributes);
-  if (isInterestingTag(tag, attrs)) {
+  // Only emit nodes inside shadow trees — light DOM is already covered by page.evaluate.
+  if (inShadow && isInterestingTag(tag, attrs)) {
     const role = roleFrom(tag, attrs);
     const name = (
       attrs["aria-label"] ||

@@ -16,14 +16,14 @@
 We are **not** dumping full DOM/HTML/chat history into JSON files.
 
 ### Is memory implemented in Rust?
-**No.**
+**Not for L2 storage.** Experience memory stays in TypeScript + SQLite.
+
+**Experimental:** `crates/ber-core` provides fingerprint + hashing embeddings + CLI. Set `BER_RUST_CORE=1` to prefer Rust fingerprints when `ber-core` is on `PATH`. The execution kernel remains TypeScript.
 
 Current stack:
 - **TypeScript** runtime
 - **SQLite** via `better-sqlite3`
 - L3 similarity via hashing embeddings (optional neural) stored beside experiences
-
-Rust was in the ChatGPT long-term vision. We deferred it on purpose until the agent loop proves value.
 
 ---
 
