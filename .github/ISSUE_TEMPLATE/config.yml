@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/shehrii9/browser-execution-runtime/blob/main/CONTRIBUTING.md
+    about: Setup, tests, and where to help
+  - name: Architecture & roadmap context
+    url: https://github.com/shehrii9/browser-execution-runtime/blob/main/ARCHITECTURE.md
+    about: Design decisions and shipped vs planned work
