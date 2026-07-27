@@ -60,10 +60,10 @@ export class BrowserRuntime {
       resolve(this.dataDir, "experiences.db"),
       options.embedder ?? createEmbedderFromEnv(),
     );
-    this.planner = options.planner ?? new BuiltinPlanner();
+    this.plugins = options.plugins ?? new PluginRegistry();
+    this.planner = options.planner ?? new BuiltinPlanner(this.plugins);
     this.computerUseFallback =
       options.computerUseFallback ?? new NoopComputerUseFallback();
-    this.plugins = options.plugins ?? new PluginRegistry();
     this.events = options.events ?? new EventBus();
   }
 

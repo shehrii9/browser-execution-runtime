@@ -13,7 +13,8 @@ export {
   NeuralEmbedder,
   createEmbedderFromEnv,
 } from "./memory/embedder.js";
-export { PluginRegistry, DEFAULT_PLUGINS } from "./plugins/registry.js";
+export { PluginRegistry, DEFAULT_PLUGINS, createPluginRegistry } from "./plugins/registry.js";
+export { loadConfigSitePlugins, ConfigPluginSchema } from "./plugins/loadConfigPlugins.js";
 export { EventBus } from "./events/bus.js";
 export type { RuntimeEvent, RuntimeEventType } from "./events/bus.js";
 export { mediaSitesPlugin, MEDIA_SITE_DOMAINS, youtubePlugin } from "./plugins/mediaSites.js";

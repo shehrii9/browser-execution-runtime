@@ -6,6 +6,7 @@ import {
   LlmPlanner,
 } from "./planner/llm.js";
 import { BuiltinPlanner, NoopComputerUseFallback } from "./planner/engine.js";
+import { createPluginRegistry } from "./plugins/registry.js";
 import { policyDefaultsFromEnv } from "./policy.js";
 import { BrowserRuntime, type RuntimeOptions } from "./runtime.js";
 
@@ -45,7 +46,9 @@ export function createRuntimeFromEnv(
       })
     : null;
 
-  const planner = overrides.planner ?? llm ?? new BuiltinPlanner();
+  const plugins = overrides.plugins ?? createPluginRegistry(cfg.configPlugins);
+  const resolvedPlanner =
+    overrides.planner ?? llm ?? new BuiltinPlanner(plugins);
   const envFallback = createComputerUseFallbackFromEnv();
   const computerUseFallback =
     overrides.computerUseFallback ??
@@ -62,8 +65,9 @@ export function createRuntimeFromEnv(
       allowNavigationOutsideAllowlist: cfg.domains.length === 0,
       ...overrides.policy,
     },
-    planner,
+    planner: resolvedPlanner,
     computerUseFallback,
+    plugins,
   });
 }
 
