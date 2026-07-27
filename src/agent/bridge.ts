@@ -1,6 +1,7 @@
 import { defaultPersistentProfileDir } from "../browser/profiles.js";
 import type { Plan } from "../types.js";
 import { RuntimeClient } from "./client.js";
+import { getToolRoute } from "./toolRoutes.js";
 import type { AgentToolName } from "./tools.js";
 
 export interface ToolCall {
@@ -18,6 +19,8 @@ export class ToolBridge {
   async handle(call: ToolCall): Promise<unknown> {
     const name = call.name as AgentToolName;
     const args = call.arguments ?? {};
+    // Validate against canonical route table (shared with Cursor/Codex docs).
+    getToolRoute(name);
 
     switch (name) {
       case "browser_attach": {

@@ -43,6 +43,11 @@ export { RuntimeClient } from "./agent/client.js";
 export { ToolBridge, createDefaultBridge } from "./agent/bridge.js";
 export { AGENT_TOOLS } from "./agent/tools.js";
 export {
+  TOOL_HTTP_ROUTES,
+  getToolRoute,
+  listRoutedToolNames,
+} from "./agent/toolRoutes.js";
+export {
   HermesRuntimeClient,
   HermesToolBridge,
   HERMES_TOOLS,

@@ -1,0 +1,51 @@
+---
+description: Prefer Browser Execution Runtime (BER) for browser automation instead of computer-use/screenshots
+alwaysApply: false
+---
+
+# Browser Execution Runtime (BER)
+
+When the user asks to control a browser, open pages, click, type, extract web content, or automate websites, use the local **Browser Execution Runtime** daemon instead of screenshot/computer-use loops.
+
+## Setup assumption
+
+- Daemon base URL: `http://127.0.0.1:8787` (or `$BER_URL`)
+- Tool schemas: `examples/agent-tools.json`
+- No API key is required for BER itself
+
+## Preferred workflow
+
+1. Check daemon: `GET /health` or `npm run doctor`
+2. `browser_attach` with `startUrl` or `cdpUrl`
+3. Prefer `browser_run_plan` with an explicit JSON plan when steps are clear
+4. Use `browser_execute` for high-level intents when a planner is configured
+5. Use `browser_observe` / `browser_diff` for cheap state (not screenshots)
+6. On failure: `browser_resume` or recover, then continue
+7. Only fall back to computer-use/vision if BER recovery fails repeatedly
+
+## Tool → HTTP map
+
+- `browser_attach` → `POST /attach`
+- `browser_execute` → `POST /execute`
+- `browser_run_plan` → `POST /run`
+- `browser_observe` → `GET /observe`
+- `browser_diff` → `GET /diff`
+- `browser_resume` → `POST /resume`
+- `browser_status` → `GET /status`
+- `browser_tabs` → `GET /tabs`
+
+## CLI helpers
+
+```bash
+npm run call -- browser_attach '{"startUrl":"https://example.com"}'
+npm run call -- browser_run_plan '{"plan":{"goal":"open","steps":[{"action":{"type":"navigate","url":"https://example.com"}}]}}'
+npm run call -- browser_observe '{}'
+```
+
+## Rules
+
+- Do not put the model inside a Chrome extension
+- Do not require Hermes; any OpenAI-compatible agent/provider is fine
+- Prefer role/name targets over brittle CSS
+- Respect safety policy (no purchase flows unless explicitly allowed)
+- Keep plans short and deterministic

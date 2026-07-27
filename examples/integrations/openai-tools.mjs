@@ -8,6 +8,7 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { callBerTool, TOOL_HTTP_ROUTES } from "./toolHttp.mjs";
 
 const BASE = process.env.BER_URL ?? "http://127.0.0.1:8787";
 const tools = JSON.parse(
@@ -15,33 +16,7 @@ const tools = JSON.parse(
 ).tools;
 
 async function callTool(name, args = {}) {
-  const map = {
-    browser_attach: () => post("/attach", args),
-    browser_execute: () => post("/execute", args),
-    browser_run_plan: () => post("/run", args),
-    browser_observe: () => get("/observe"),
-    browser_diff: () => get("/diff"),
-    browser_resume: () => post("/resume", {}),
-    browser_status: () => get("/status"),
-    browser_tabs: () => get("/tabs"),
-  };
-  const fn = map[name];
-  if (!fn) throw new Error(`Unknown tool ${name}`);
-  return fn();
-}
-
-async function get(path) {
-  const res = await fetch(`${BASE}${path}`);
-  return res.json();
-}
-
-async function post(path, body) {
-  const res = await fetch(`${BASE}${path}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body ?? {}),
-  });
-  return res.json();
+  return callBerTool(BASE, name, args);
 }
 
 const attach = await callTool("browser_attach", {
@@ -67,6 +42,7 @@ console.log(
   JSON.stringify(
     {
       availableTools: tools.map((t) => t.function.name),
+      routedTools: Object.keys(TOOL_HTTP_ROUTES),
       attached: Boolean(attach.ok),
       heading: run.steps?.find((s) => s.extracted?.heading)?.extracted?.heading,
       ok: run.ok,

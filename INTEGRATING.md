@@ -41,9 +41,27 @@ Hermes / vLLM / LM Studio / OpenRouter all work the same way: point `BER_LLM_API
 ## Wire your agent
 
 1. Start daemon: `npm run daemon`
-2. Export tools: `npm run dev -- tools examples/agent-tools.json`
+2. Export tools: `npm run tools -- examples/agent-tools.json`
 3. Register those tools in your agent
 4. Prefer `browser_*` tools over computer-use
+
+### Cursor
+
+Use the project rule:
+
+- `.cursor/rules/ber-runtime.mdc`
+
+Or paste the short snippet from:
+
+- `examples/integrations/cursor-rules.md`
+
+### OpenAI Codex
+
+Use the task prompt template:
+
+- `examples/integrations/codex-prompt.md`
+
+Replace `<DESCRIBE THE BROWSER TASK HERE>` with your mission. Codex can call BER through function tools or shell (`npm run call -- ...`).
 
 Or call HTTP directly:
 

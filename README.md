@@ -149,11 +149,26 @@ Full integration guide: [`INTEGRATING.md`](./INTEGRATING.md)
 
 ---
 
-## Wire any agent
+## Wire any agent (Cursor, Codex, Claude, custom…)
 
 ```bash
 npm run daemon
 npm run tools -- examples/agent-tools.json
+```
+
+### Cursor
+
+- Repo rule: [`.cursor/rules/ber-runtime.mdc`](./.cursor/rules/ber-runtime.mdc)
+- Copy/paste snippet: [`examples/integrations/cursor-rules.md`](./examples/integrations/cursor-rules.md)
+
+### OpenAI Codex
+
+- Prompt template: [`examples/integrations/codex-prompt.md`](./examples/integrations/codex-prompt.md)
+
+### Generic OpenAI-style tools
+
+```bash
+node examples/integrations/openai-tools.mjs
 ```
 
 Register the exported tools in your agent, then prefer them over computer-use:
