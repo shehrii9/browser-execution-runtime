@@ -4,9 +4,15 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
+    name: test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -36,6 +42,7 @@ jobs:
         run: npm run pack:check
 
   rust:
+    name: rust
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -47,3 +54,17 @@ jobs:
         run: cargo test -p ber-core
       - name: Build ber-core
         run: cargo build -p ber-core
+
+  # Single gate for branch protection (easier to find than individual jobs in the UI).
+  all:
+    name: all
+    runs-on: ubuntu-latest
+    needs: [test, rust]
+    if: always()
+    steps:
+      - name: Require test and rust
+        run: |
+          echo "test=${{ needs.test.result }} rust=${{ needs.rust.result }}"
+          if [ "${{ needs.test.result }}" != "success" ] || [ "${{ needs.rust.result }}" != "success" ]; then
+            exit 1
+          fi

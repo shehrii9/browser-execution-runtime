@@ -50,6 +50,8 @@ cargo test -p ber-core
 
 ## Pull request guidelines
 
+Open PRs against `main` and wait for the **`all`** CI check (or **test** + **rust**). See [`docs/BRANCH_PROTECTION.md`](./docs/BRANCH_PROTECTION.md) if GitHub does not list checks yet.
+
 - **Scope**: One logical change per PR when possible.
 - **Tests**: Add or update tests when behavior changes. Prefer unit tests; use browser tests for CDP/Playwright behavior.
 - **Style**: Match surrounding TypeScript (no drive-by refactors).
