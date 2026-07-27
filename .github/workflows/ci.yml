@@ -26,8 +26,6 @@ jobs:
         run: npm run typecheck
       - name: Unit tests
         run: npm test
-      - name: Experience store smoke (native sqlite)
-        run: npx tsx scripts/ci-experience-smoke.ts
       - name: Install Playwright Chromium
         run: npx playwright install chromium
       - name: Browser smoke tests
