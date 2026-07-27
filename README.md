@@ -67,7 +67,7 @@ This project is a **local execution wrapper**:
 - **Iframe targets** — `frame` / `frameUrl` for consent CMPs and nested UI
 - **Open tool bridge** — OpenAI-style `browser_*` tools any agent can register
 - **Optional LLM planner** — any OpenAI-compatible endpoint; key optional
-- **Debug Chrome extension** — attach-only bridge (no AI inside)
+- **Debug Chrome extension** — attach-only bridge: observe, diff, events, dismiss overlays, modal signals
 - **Safety policy** — domain allowlist, purchase blocking
 - **One-command start** — `npm start` (setup + daemon)
 

@@ -52,6 +52,12 @@ export function startDaemon(options: DaemonOptions): Server {
           cdpHint:
             "Start Chrome with --remote-debugging-port=9222 and pass cdpUrl http://127.0.0.1:9222",
           plugins: runtime.listPlugins(),
+          popup: {
+            observe: "GET /observe",
+            diff: "GET /diff",
+            events: "GET /events",
+            dismissOverlays: "POST /act { action: dismiss_overlays }",
+          },
         });
       }
 

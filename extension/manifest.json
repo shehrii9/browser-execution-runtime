@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BER Debug Bridge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Attach-only debug bridge for browser-execution-runtime. No AI inside.",
   "action": {
     "default_title": "BER Debug Bridge",
