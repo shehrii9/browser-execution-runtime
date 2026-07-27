@@ -1,0 +1,28 @@
+{
+  "plugins": [
+    {
+      "id": "demo-shop",
+      "domains": ["shop.example.com", "shop.test"],
+      "workflows": {
+        "quick_checkout": [
+          { "type": "dismiss_overlays" },
+          {
+            "type": "click",
+            "target": { "role": "button", "name": "Checkout" }
+          }
+        ]
+      },
+      "recovery": {
+        "cookie_banner": [
+          [{ "type": "dismiss_overlays" }],
+          [
+            {
+              "type": "click",
+              "target": { "role": "button", "name": "Accept all" }
+            }
+          ]
+        ]
+      }
+    }
+  ]
+}

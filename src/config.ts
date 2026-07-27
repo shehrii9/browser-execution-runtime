@@ -1,6 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { z } from "zod";
+import { loadConfigSitePlugins } from "./plugins/loadConfigPlugins.js";
+import type { SitePlugin } from "./plugins/types.js";
 
 const ConfigSchema = z.object({
   runtime: z
@@ -40,6 +42,10 @@ const ConfigSchema = z.object({
       }),
     )
     .default({}),
+  /** Declarative site plugins (workflows + recovery action lists). */
+  plugins: z.array(z.unknown()).optional(),
+  /** Path to a JSON file with `{ "plugins": [ ... ] }` (relative to config file). */
+  pluginsFile: z.string().optional(),
 });
 
 export type BerConfig = z.infer<typeof ConfigSchema>;
@@ -59,6 +65,7 @@ export interface ResolvedRuntimeConfig {
     timeoutMs: number;
   };
   configPath?: string;
+  configPlugins: SitePlugin[];
 }
 
 /**
@@ -160,6 +167,14 @@ export function loadBerConfig(options: {
       ),
     },
     configPath,
+    configPlugins: loadConfigSitePlugins({
+      cwd,
+      configPath,
+      inlinePlugins: fileConfig.plugins,
+      pluginsFile:
+        fileConfig.pluginsFile || env.BER_PLUGINS || env.BER_PLUGINS_FILE,
+      env,
+    }),
   };
 }
 

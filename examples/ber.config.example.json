@@ -11,6 +11,7 @@
     "model": "llama3.2",
     "note": "apiKey is optional. Set null/omit for local providers."
   },
+  "pluginsFile": "examples/custom-plugins.example.json",
   "embeddings": {
     "apiBase": null,
     "apiKey": null,

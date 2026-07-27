@@ -44,6 +44,7 @@ async function main(): Promise<void> {
         {
           mode: cfg.llm.apiBase ? "llm+runtime" : "runtime-only",
           configPath: cfg.configPath ?? null,
+          configPlugins: cfg.configPlugins.map((p) => p.id),
           llm: {
             apiBase: cfg.llm.apiBase ?? null,
             apiKeyConfigured: Boolean(cfg.llm.apiKey),

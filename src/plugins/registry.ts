@@ -19,6 +19,10 @@ export const DEFAULT_PLUGINS: SitePlugin[] = [
   contentSitesPlugin,
 ];
 
+export function createPluginRegistry(extra: SitePlugin[] = []): PluginRegistry {
+  return new PluginRegistry([...DEFAULT_PLUGINS, ...extra]);
+}
+
 export class PluginRegistry {
   private readonly plugins: SitePlugin[] = [];
 

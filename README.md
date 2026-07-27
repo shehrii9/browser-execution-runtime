@@ -365,6 +365,7 @@ See [`examples/ber.config.example.json`](./examples/ber.config.example.json).
 | `BER_ALLOW_PURCHASE=1` | no | Allow purchase-like goals/clicks |
 | `BER_DOMAINS` | no | Comma-separated domain allowlist |
 | `BER_CONFIG` | no | Path to config file |
+| `BER_PLUGINS` | no | JSON file with `{ "plugins": [...] }` (also `pluginsFile` in config) |
 | `BER_PROVIDER` | no | Select `providers.<name>` from config |
 | `BER_LLM_API_BASE` | no | OpenAI-compatible planner base URL |
 | `BER_LLM_API_KEY` | no | Only if provider needs auth |

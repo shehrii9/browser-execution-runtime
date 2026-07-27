@@ -125,6 +125,40 @@ npm run doctor        # shows resolved wiring
 
 `ber.config.json` is optional. Environment variables always win. `apiKey` may be `null` or `"env:MY_VAR"`.
 
+### Config-loaded site plugins
+
+Add declarative plugins (workflows + recovery action lists) without TypeScript:
+
+```json
+{
+  "pluginsFile": "examples/custom-plugins.example.json"
+}
+```
+
+Or inline:
+
+```json
+{
+  "plugins": [
+    {
+      "id": "my-store",
+      "domains": ["store.example.com"],
+      "workflows": {
+        "checkout": [{ "type": "dismiss_overlays" }]
+      },
+      "recovery": {
+        "cookie_banner": [[{ "type": "dismiss_overlays" }]]
+      }
+    }
+  ]
+}
+```
+
+- `workflows` — used by the builtin planner (`run checkout on store.example.com`)
+- `recovery` — keys are problem kinds (`cookie_banner`, `dialog_blocking`, …)
+
+Override path with `BER_PLUGINS` / `BER_PLUGINS_FILE`. `npm run doctor` lists loaded config plugin ids.
+
 ## Language wrappers
 
 ### JavaScript tool bridge
