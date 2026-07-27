@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Sign in — Demo App</title>
+    <style>
+      #backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .panel {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        width: 320px;
+      }
+      label { display: block; margin-top: 0.75rem; font-size: 0.9rem; }
+      input { width: 100%; margin-top: 0.25rem; padding: 0.5rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Demo App</h1>
+    <p>Content behind the login wall.</p>
+    <div id="backdrop">
+      <div class="panel" role="dialog" aria-label="Sign in">
+        <h2>Sign in</h2>
+        <label>Email <input type="email" name="email" placeholder="Email" /></label>
+        <label>Password <input type="password" name="password" placeholder="Password" /></label>
+        <button type="button">Continue</button>
+      </div>
+    </div>
+    <script>
+      document.querySelector("button").onclick = () => {
+        document.getElementById("backdrop").remove();
+        document.body.insertAdjacentHTML("beforeend", "<p id=ok>Signed in</p>");
+      };
+    </script>
+  </body>
+</html>

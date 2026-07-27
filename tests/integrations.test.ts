@@ -47,12 +47,14 @@ describe("Cursor + Codex integration templates", () => {
   const cursorSnippet = resolve(root, "examples/integrations/cursor-rules.md");
   const codexPrompt = resolve(root, "examples/integrations/codex-prompt.md");
   const toolHttp = resolve(root, "examples/integrations/toolHttp.mjs");
+  const modalPlaybook = resolve(root, "examples/integrations/modal-playbook.md");
 
   it("ships Cursor rules and Codex prompt files", () => {
     expect(existsSync(cursorRule)).toBe(true);
     expect(existsSync(cursorSnippet)).toBe(true);
     expect(existsSync(codexPrompt)).toBe(true);
     expect(existsSync(toolHttp)).toBe(true);
+    expect(existsSync(modalPlaybook)).toBe(true);
   });
 
   it("documents BER daemon URL and anti-computer-use preference", () => {
@@ -66,6 +68,7 @@ describe("Cursor + Codex integration templates", () => {
       expect(text).toContain("browser_attach");
       expect(text).toContain("browser_run_plan");
       expect(text).toContain("browser_observe");
+      expect(text).toMatch(/modal:(cookie|login)/);
       expect(text).toMatch(/No API key/i);
     }
   });

@@ -6,6 +6,7 @@ import {
   LlmPlanner,
 } from "./planner/llm.js";
 import { BuiltinPlanner, NoopComputerUseFallback } from "./planner/engine.js";
+import { policyDefaultsFromEnv } from "./policy.js";
 import { BrowserRuntime, type RuntimeOptions } from "./runtime.js";
 
 /**
@@ -54,6 +55,7 @@ export function createRuntimeFromEnv(
   return new BrowserRuntime({
     dataDir: overrides.dataDir ?? resolve(cfg.dataDir),
     policy: {
+      ...policyDefaultsFromEnv(),
       headless: cfg.headless,
       allowPurchase: cfg.allowPurchase,
       domains: cfg.domains,

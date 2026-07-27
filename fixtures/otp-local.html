@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Verify — Demo App</title>
+    <style>
+      #modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .box {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        width: 300px;
+      }
+      input { width: 100%; padding: 0.5rem; margin-top: 0.5rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Demo App</h1>
+    <div id="modal">
+      <div class="box" role="dialog" aria-label="Two-factor verification">
+        <p>Enter the verification code we sent to your phone.</p>
+        <label
+          >One-time code
+          <input type="text" inputmode="numeric" placeholder="Enter verification code" maxlength="6"
+        /></label>
+        <button type="button">Verify</button>
+      </div>
+    </div>
+    <script>
+      const input = document.querySelector("input");
+      document.querySelector("button").onclick = () => {
+        if (input.value.trim() === "123456") {
+          document.getElementById("modal").remove();
+          document.body.insertAdjacentHTML("beforeend", "<p id=ok>Verified</p>");
+        }
+      };
+    </script>
+  </body>
+</html>
