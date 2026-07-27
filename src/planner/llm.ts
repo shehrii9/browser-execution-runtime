@@ -27,10 +27,11 @@ Return ONLY valid JSON matching this schema:
         | {"type":"type","target": Target,"text":string,"clear"?:boolean,"pressEnter"?:boolean}
         | {"type":"select","target": Target,"value":string}
         | {"type":"wait","ms"?:number,"urlIncludes"?:string,"text"?:string,"target"?: Target,"settle"?:boolean,"networkIdle"?:boolean,"timeoutMs"?:number}
-        | {"type":"scroll","direction"?: "up"|"down","amount"?: number,"settle"?:boolean}
+        | {"type":"scroll","direction"?: "up"|"down","amount"?: number,"settle"?:boolean,"untilText"?:string,"untilCss"?:string,"untilCountAtLeast"?:number,"maxScrolls"?:number,"timeoutMs"?:number}
         | {"type":"extract","target"?: Target,"attribute"?:string,"key"?:string}
         | {"type":"press","key":string}
         | {"type":"dismiss_overlays"}
+        | {"type":"media","command":"play"|"pause"|"toggle"|"mute"|"unmute"|"skip_ad"|"fullscreen"}
         | {"type":"observe"}
         | {"type":"new_tab","url"?:string}
         | {"type":"switch_tab","index":number}
@@ -46,6 +47,8 @@ Rules:
 - Plan once with enough steps; do not narrate.
 - Include dismiss_overlays after navigations when popups are likely.
 - On SPAs / YouTube-like sites, use {"type":"wait","settle":true} after navigate/click.
+- For infinite scroll feeds use scroll with untilCss/untilText/untilCountAtLeast.
+- For video pages prefer {"type":"media","command":"play"|"skip_ad"} over screenshot clicks.
 - Never include payment/purchase confirmation unless explicitly required.
 - Output JSON only. No markdown.`;
 

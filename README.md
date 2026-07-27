@@ -58,6 +58,8 @@ This project is a **local execution wrapper**:
 - **L3 similarity** — local hashing embeddings by default; optional neural `/embeddings`
 - **Site plugins** — `cookie-consent`, `auth-modal`, `github`, `google`, `amazon`, `youtube`
 - **Dynamic settle** — waits for SPA/DOM quiet after navigate/click; `wait.settle`
+- **Infinite scroll** — `scroll` with `untilText` / `untilCss` / `untilCountAtLeast`
+- **Media actions** — `media` play/pause/mute/skip_ad for YouTube-like pages
 - **Event bus** — step/recovery/run events via `GET /events` or SSE stream
 - **Iframe targets** — `frame` / `frameUrl` for consent CMPs and nested UI
 - **Open tool bridge** — OpenAI-style `browser_*` tools any agent can register
@@ -226,6 +228,8 @@ npm run dev -- execute "open https://example.com"
 npm run dev -- run-plan examples/sample-plan.json
 npm run dev -- run-plan examples/multi-tab-plan.json
 npm run dev -- run-plan examples/youtube-search-plan.json
+npm run dev -- run-plan examples/youtube-watch-plan.json
+npm run dev -- run-plan examples/scroll-until-plan.json
 npm run dev -- call <tool> '<json>'
 ```
 

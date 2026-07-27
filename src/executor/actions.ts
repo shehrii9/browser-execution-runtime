@@ -114,11 +114,40 @@ export class ActionExecutor {
         }
         case "scroll": {
           const delta = action.direction === "up" ? -action.amount : action.amount;
-          await this.page.mouse.wheel(0, delta);
-          if (action.settle !== false) {
-            await settlePage(this.page, { timeoutMs: 2500, quietMs: 300 });
+          const until =
+            Boolean(action.untilText) ||
+            Boolean(action.untilCss) ||
+            typeof action.untilCountAtLeast === "number";
+
+          if (!until) {
+            await this.page.mouse.wheel(0, delta);
+            if (action.settle !== false) {
+              await settlePage(this.page, { timeoutMs: 2500, quietMs: 300 });
+            }
+            return { ok: true };
           }
-          return { ok: true };
+
+          const maxScrolls = action.maxScrolls ?? 8;
+          const timeoutMs = action.timeoutMs ?? 20000;
+          const deadline = Date.now() + timeoutMs;
+          for (let i = 0; i < maxScrolls; i++) {
+            if (await scrollUntilMet(this.page, action)) {
+              if (action.settle !== false) {
+                await settlePage(this.page, { timeoutMs: 2000, quietMs: 250 });
+              }
+              return { ok: true };
+            }
+            if (Date.now() > deadline) break;
+            await this.page.mouse.wheel(0, delta);
+            await settlePage(this.page, { timeoutMs: 2000, quietMs: 250 });
+          }
+          if (await scrollUntilMet(this.page, action)) {
+            return { ok: true };
+          }
+          return {
+            ok: false,
+            error: `scroll until condition not met after ${maxScrolls} scrolls`,
+          };
         }
         case "extract": {
           if (!action.target) {
@@ -141,6 +170,9 @@ export class ActionExecutor {
         case "dismiss_overlays": {
           await dismissCommonOverlays(this.page);
           return { ok: true };
+        }
+        case "media": {
+          return runMediaCommand(this.page, action.command);
         }
         case "observe": {
           // Runner always re-observes; settle so late SPA nodes are visible first.
@@ -215,4 +247,151 @@ async function dismissCommonOverlays(page: Page): Promise<void> {
   }
 
   await page.keyboard.press("Escape").catch(() => undefined);
+}
+
+async function scrollUntilMet(
+  page: Page,
+  action: Extract<Action, { type: "scroll" }>,
+): Promise<boolean> {
+  if (action.untilText) {
+    const visible = await page
+      .getByText(action.untilText)
+      .first()
+      .isVisible()
+      .catch(() => false);
+    if (visible) return true;
+  }
+  if (action.untilCss) {
+    const count = await page.locator(action.untilCss).count().catch(() => 0);
+    const need = action.untilCountAtLeast ?? 1;
+    if (count >= need) return true;
+  } else if (typeof action.untilCountAtLeast === "number") {
+    // Fallback: body child growth heuristic when only a count is requested.
+    const nodes = await page
+      .evaluate(`document.body ? document.body.querySelectorAll('*').length : 0`)
+      .catch(() => 0);
+    if (Number(nodes) >= action.untilCountAtLeast) return true;
+  }
+  // If only untilText was set and not found, keep going.
+  if (!action.untilText && !action.untilCss && action.untilCountAtLeast === undefined) {
+    return true;
+  }
+  return false;
+}
+
+async function runMediaCommand(
+  page: Page,
+  command: Extract<Action, { type: "media" }>["command"],
+): Promise<ActionExecutionResult> {
+  if (command === "skip_ad") {
+    const candidates = [
+      page.getByRole("button", { name: /skip ad/i }),
+      page.getByRole("button", { name: /^skip$/i }),
+      page.getByText(/skip ad/i),
+      page.locator(".ytp-ad-skip-button, .ytp-skip-ad-button, button.ytp-ad-skip-button-modern"),
+    ];
+    for (const candidate of candidates) {
+      try {
+        if (await candidate.first().isVisible({ timeout: 600 })) {
+          await candidate.first().click({ timeout: 1500 });
+          await settlePage(page, { timeoutMs: 1500, quietMs: 200 });
+          return { ok: true, extracted: { media: "skip_ad" } };
+        }
+      } catch {
+        // try next
+      }
+    }
+    // No skip button usually means there is no skippable ad — treat as success.
+    return { ok: true, extracted: { media: "skip_ad", skipped: "false" } };
+  }
+
+  if (command === "play" || command === "pause" || command === "toggle") {
+    const desired =
+      command === "play" ? true : command === "pause" ? false : null;
+    const result = await page
+      .evaluate(
+        `(() => {
+          const video = document.querySelector("video");
+          if (!video) return { ok: false, reason: "no_video" };
+          const want = ${desired === null ? "null" : desired ? "true" : "false"};
+          if (want === null) {
+            if (video.paused) video.play();
+            else video.pause();
+          } else if (want) {
+            video.play();
+          } else {
+            video.pause();
+          }
+          return { ok: true, paused: video.paused };
+        })()`,
+      )
+      .catch(() => ({ ok: false, reason: "evaluate_failed" }));
+
+    if (result && typeof result === "object" && (result as { ok?: boolean }).ok) {
+      if (command === "toggle") {
+        // evaluate already toggled; no extra key
+      }
+      await settlePage(page, { timeoutMs: 1200, quietMs: 150 });
+      return {
+        ok: true,
+        extracted: {
+          media: command,
+          paused: String((result as { paused?: boolean }).paused ?? ""),
+        },
+      };
+    }
+
+    // Fallback: YouTube keyboard shortcut, then aria-labelled buttons.
+    if (command === "toggle") {
+      await page.keyboard.press("k").catch(() => undefined);
+      await settlePage(page, { timeoutMs: 800, quietMs: 100 });
+      return { ok: true, extracted: { media: "toggle" } };
+    }
+    const label =
+      command === "play"
+        ? /play/i
+        : command === "pause"
+          ? /pause/i
+          : /play|pause/i;
+    try {
+      const btn = page.getByRole("button", { name: label });
+      if (await btn.first().isVisible({ timeout: 800 })) {
+        await btn.first().click({ timeout: 1500 });
+        return { ok: true, extracted: { media: command } };
+      }
+    } catch {
+      // fall through
+    }
+    return { ok: false, error: `media ${command} failed: no video control` };
+  }
+
+  if (command === "mute" || command === "unmute") {
+    await page
+      .evaluate(
+        `(() => {
+          const video = document.querySelector("video");
+          if (!video) return false;
+          video.muted = ${command === "mute" ? "true" : "false"};
+          return true;
+        })()`,
+      )
+      .catch(() => false);
+    await page.keyboard.press("m").catch(() => undefined);
+    return { ok: true, extracted: { media: command } };
+  }
+
+  if (command === "fullscreen") {
+    await page.keyboard.press("f").catch(() => undefined);
+    try {
+      const btn = page.getByRole("button", { name: /full ?screen/i });
+      if (await btn.first().isVisible({ timeout: 500 })) {
+        await btn.first().click({ timeout: 1000 });
+      }
+    } catch {
+      // keyboard may be enough
+    }
+    return { ok: true, extracted: { media: "fullscreen" } };
+  }
+
+  return { ok: false, error: `unsupported media command: ${command}` };
 }
