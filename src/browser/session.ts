@@ -1,4 +1,5 @@
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
+import { wireContextLifecycle } from "./contextLifecycle.js";
 import type { Policy } from "../types.js";
 
 export interface AttachOptions {
@@ -55,6 +56,12 @@ export class BrowserSession {
     if (options.startUrl) {
       await this.page.goto(options.startUrl, { waitUntil: "domcontentloaded" });
     }
+
+    wireContextLifecycle(this.context, this.policy, {
+      adoptPopupPage: (page) => {
+        this.page = page;
+      },
+    });
 
     return this.page;
   }

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { SemanticState } from "../types.js";
+import { inferModalKinds } from "./dialogKinds.js";
 import { MEDIA_SITE_DOMAINS } from "../plugins/mediaSites.js";
 import { fingerprintViaRust } from "../memory/rustBridge.js";
 
@@ -45,6 +46,9 @@ export function buildSignals(state: Omit<SemanticState, "fingerprint" | "observe
   }
   if (isMediaHost(state.domain)) {
     signals.add("media_site");
+  }
+  for (const kind of inferModalKinds(state)) {
+    signals.add(`modal:${kind}`);
   }
   for (const dialog of state.dialogs.slice(0, 5)) {
     signals.add(`dialog:${normalizeToken(dialog)}`);
