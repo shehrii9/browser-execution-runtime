@@ -4,6 +4,8 @@
 
 Any agent can wrap it. No vendor lock-in. **No API key required.**
 
+[![CI](https://github.com/shehrii9/browser-execution-runtime/actions/workflows/ci.yml/badge.svg)](https://github.com/shehrii9/browser-execution-runtime/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/browser-execution-runtime.svg?label=npm)](https://www.npmjs.com/package/browser-execution-runtime)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](./package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](./tsconfig.json)
@@ -91,6 +93,8 @@ npm start
 ```
 
 That is all for first startup. The engine listens on `http://127.0.0.1:8787`.
+
+**60-second walkthrough:** [`examples/QUICK_DEMO.md`](./examples/QUICK_DEMO.md)
 
 In another terminal:
 
@@ -483,6 +487,29 @@ browser-execution-runtime/
 
 ---
 
+## Contributing
+
+We welcome issues and pull requests. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for setup, test commands, and high-impact areas (site plugins, recovery, examples, Python SDK, Rust core). Please follow the [`CODE_OF_CONDUCT`](./CODE_OF_CONDUCT.md).
+
+- **Starter tasks:** [`GOOD_FIRST_ISSUES.md`](./GOOD_FIRST_ISSUES.md) · [issues labeled `good first issue`](https://github.com/shehrii9/browser-execution-runtime/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+- **Roadmap:** [`ROADMAP.md`](./ROADMAP.md)
+- **Q&A:** [GitHub Discussions](https://github.com/shehrii9/browser-execution-runtime/discussions) · moderator FAQ draft in [`docs/DISCUSSIONS_FAQ.md`](./docs/DISCUSSIONS_FAQ.md)
+- **Why not screenshot-every-step:** [`docs/COMPARISON.md`](./docs/COMPARISON.md)
+
+### Community & integrations
+
+Early-stage OSS — if you ship BER with your agent or product, [open a Discussion](https://github.com/shehrii9/browser-execution-runtime/discussions) or PR to add a one-line link here.
+
+| Integration | Link |
+|---|---|
+| Cursor | [`examples/integrations/cursor-rules.md`](./examples/integrations/cursor-rules.md) |
+| OpenAI Codex | [`examples/integrations/codex-prompt.md`](./examples/integrations/codex-prompt.md) |
+| Local Ollama planner | [`examples/integrations/ollama-demo.sh`](./examples/integrations/ollama-demo.sh) |
+
+Shareable contributor pitch: [`docs/CONTRIBUTOR_CALL.md`](./docs/CONTRIBUTOR_CALL.md)
+
+Maintainers: GitHub topics, Discussions, and labels — [`docs/GITHUB_MAINTAINER_SETUP.md`](./docs/GITHUB_MAINTAINER_SETUP.md)
+
 ## Development
 
 ```bash
@@ -501,6 +528,7 @@ Useful docs:
 
 - [`INTEGRATING.md`](./INTEGRATING.md) — wire any agent/provider
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — design status
+- [`ROADMAP.md`](./ROADMAP.md) — priorities
 - [`PUBLISHING.md`](./PUBLISHING.md) — release checklist
 - [`LICENSE`](./LICENSE) — MIT
 

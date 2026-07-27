@@ -163,3 +163,17 @@ Runtime API (daemon/CLI)
             ↓
          Chromium
 ```
+
+---
+
+## Help wanted
+
+Contributor-friendly work (see [`GOOD_FIRST_ISSUES.md`](./GOOD_FIRST_ISSUES.md) and [`ROADMAP.md`](./ROADMAP.md)):
+
+- **Site plugins** — add domains and recovery button variants (`src/plugins/`)
+- **Dynamic SPAs** — push-style DOM change hints (today: settle + re-observe; no MutationObserver stream yet)
+- **Iframe / closed shadow** — more tests and observe edge cases (`tests/content-frames.test.ts`, `BER_PIERCE_SHADOW`)
+- **Integrations** — agent-specific examples under `examples/integrations/`
+- **Python SDK docs** — parity examples for events/SSE (`sdk/python/README.md`)
+- **Rust core** — optional fingerprint/embed improvements in `crates/ber-core/` (TS kernel stays default)
+
