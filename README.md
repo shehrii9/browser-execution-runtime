@@ -508,6 +508,8 @@ Early-stage OSS — if you ship BER with your agent or product, [open a Discussi
 
 Shareable contributor pitch: [`docs/CONTRIBUTOR_CALL.md`](./docs/CONTRIBUTOR_CALL.md)
 
+Maintainers: GitHub topics, Discussions, and labels — [`docs/GITHUB_MAINTAINER_SETUP.md`](./docs/GITHUB_MAINTAINER_SETUP.md)
+
 ## Development
 
 ```bash
