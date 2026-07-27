@@ -8,6 +8,10 @@ export const TargetRefSchema = z.object({
   css: z.string().optional(),
   testId: z.string().optional(),
   nth: z.number().int().nonnegative().optional(),
+  /** Iframe CSS selector, e.g. "iframe#consent" or "iframe[src*='consent']". */
+  frame: z.string().optional(),
+  /** Match iframe by URL substring when CSS is unknown. */
+  frameUrl: z.string().optional(),
 });
 
 export type TargetRef = z.infer<typeof TargetRefSchema>;

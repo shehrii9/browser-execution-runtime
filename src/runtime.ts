@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { BrowserSession, type AttachOptions } from "./browser/session.js";
+import { EventBus } from "./events/bus.js";
 import { ExperienceStore } from "./experience/store.js";
 import { PlanRunner } from "./executor/plan-runner.js";
 import { ActionExecutor } from "./executor/actions.js";
@@ -34,6 +35,7 @@ export interface RuntimeOptions {
   computerUseFallback?: ComputerUseFallback;
   plugins?: PluginRegistry;
   embedder?: Embedder;
+  events?: EventBus;
 }
 
 export class BrowserRuntime {
@@ -46,6 +48,7 @@ export class BrowserRuntime {
   private readonly computerUseFallback: ComputerUseFallback;
   private readonly plugins: PluginRegistry;
   private readonly dataDir: string;
+  readonly events: EventBus;
   private lastPlan?: Plan;
   private lastResult?: RunResult;
 
@@ -61,12 +64,18 @@ export class BrowserRuntime {
     this.computerUseFallback =
       options.computerUseFallback ?? new NoopComputerUseFallback();
     this.plugins = options.plugins ?? new PluginRegistry();
+    this.events = options.events ?? new EventBus();
   }
 
   async attach(options: AttachOptions = {}): Promise<SemanticState> {
     await this.session.attach(options);
     const state = await observePage(this.session.getPage());
     this.sessionMemory.setState(state);
+    this.events.emit("attached", {
+      url: state.url,
+      domain: state.domain,
+      pageHint: state.pageHint,
+    });
     return state;
   }
 
@@ -74,6 +83,11 @@ export class BrowserRuntime {
     this.ensureAttached();
     const state = await observePage(this.session.getPage());
     this.sessionMemory.setState(state);
+    this.events.emit("observe", {
+      url: state.url,
+      fingerprint: state.fingerprint,
+      signals: state.signals,
+    });
     return state;
   }
 
@@ -86,9 +100,16 @@ export class BrowserRuntime {
   async act(action: Action) {
     this.ensureAttached();
     const executor = new ActionExecutor(this.session, this.policy);
+    this.events.emit("step_start", { action: action.type, source: "act" });
     const result = await executor.execute(action);
     this.sessionMemory.pushAction(action.type);
     const state = await this.observe();
+    this.events.emit("step_end", {
+      action: action.type,
+      ok: result.ok,
+      error: result.error,
+      source: "act",
+    });
     return { ...result, state };
   }
 
@@ -129,11 +150,17 @@ export class BrowserRuntime {
     }
 
     this.lastPlan = plan;
+    this.events.emit("run_start", {
+      goal: plan.goal,
+      steps: plan.steps.length,
+      resumeFromStep: options.resumeFromStep ?? 0,
+    });
     const runner = new PlanRunner(
       this.session,
       this.policy,
       this.experiences,
       this.plugins,
+      this.events,
     );
     let result = await runner.run(plan, {
       resumeFromStep: options.resumeFromStep,
@@ -185,6 +212,13 @@ export class BrowserRuntime {
     if (result.finalState) this.sessionMemory.setState(result.finalState);
     this.sessionMemory.saveCheckpoint("last_run", result);
     this.lastResult = result;
+    this.events.emit("run_end", {
+      goal: plan.goal,
+      ok: result.ok,
+      error: result.error,
+      steps: result.steps.length,
+      llmCallsAvoided: result.llmCallsAvoided,
+    });
     return result;
   }
 
@@ -227,6 +261,10 @@ export class BrowserRuntime {
     return this.plugins.list().map((p) => p.id);
   }
 
+  listEvents(options?: { afterId?: number; limit?: number; type?: string }) {
+    return this.events.list(options);
+  }
+
   metricsSnapshot() {
     return this.metrics.snapshot();
   }
@@ -253,10 +291,12 @@ export class BrowserRuntime {
 
   setPolicy(partial: Partial<Policy>): Policy {
     Object.assign(this.policy, createPolicy({ ...this.policy, ...partial }));
+    this.events.emit("policy", { ...this.policy });
     return this.policy;
   }
 
   async close(): Promise<void> {
+    this.events.emit("detached", {});
     await this.session.close();
     this.experiences.close();
     this.sessionMemory.clear();

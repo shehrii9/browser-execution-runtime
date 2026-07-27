@@ -22,7 +22,7 @@ Operating rules:
 2. Attach with browser_attach (startUrl or cdpUrl).
 3. Prefer explicit browser_run_plan JSON plans when steps are known.
 4. Use browser_execute only for high-level intents.
-5. Use browser_observe / browser_diff for state. Avoid screenshots/computer-use unless BER fails repeatedly.
+5. Use browser_observe / browser_diff / browser_events for state. Avoid screenshots/computer-use unless BER fails repeatedly.
 6. On failure, try browser_resume or a short recovery plan, then continue.
 7. Prefer accessibility targets: role + name/text.
 8. Do not perform purchase/checkout actions unless explicitly requested and allowed.
@@ -36,6 +36,7 @@ Tool to HTTP mapping:
 - browser_resume -> POST /resume
 - browser_status -> GET /status
 - browser_tabs -> GET /tabs
+- browser_events -> GET /events
 
 Shell helpers if function-calling is unavailable:
 npm run call -- browser_attach '{"startUrl":"https://example.com"}'

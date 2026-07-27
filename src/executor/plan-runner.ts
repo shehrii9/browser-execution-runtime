@@ -1,5 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
+import type { EventBus } from "../events/bus.js";
 import { ExperienceStore } from "../experience/store.js";
 import { PluginRegistry } from "../plugins/registry.js";
 import { classifyProblem, heuristicFixes } from "../recovery/engine.js";
@@ -29,6 +30,7 @@ export class PlanRunner {
     private readonly policy: Policy,
     private readonly experiences: ExperienceStore,
     private readonly plugins: PluginRegistry = new PluginRegistry(),
+    private readonly events?: EventBus,
   ) {}
 
   async run(plan: Plan, options: PlanRunnerOptions = {}): Promise<RunResult> {
@@ -48,6 +50,11 @@ export class PlanRunner {
     for (let index = startIndex; index < limitedSteps.length; index++) {
       const step = limitedSteps[index]!;
       const selectors = new SelectorEngine(this.tabs.getPage());
+      this.events?.emit("step_start", {
+        goal: plan.goal,
+        stepIndex: index,
+        action: step.action.type,
+      });
       let result = await executor.execute(step.action);
       let recovered = false;
       let experienceApplied: number | undefined;
@@ -116,6 +123,15 @@ export class PlanRunner {
           }
         }
       }
+
+      this.events?.emit("step_end", {
+        goal: plan.goal,
+        stepIndex: index,
+        action: step.action.type,
+        ok: result.ok,
+        recovered,
+        error: result.error,
+      });
 
       steps.push({
         stepIndex: index,
@@ -231,6 +247,12 @@ export class PlanRunner {
   }): Promise<{ recovered: boolean; llmCallsAvoided: number; experienceId?: number }> {
     const problem = classifyProblem(input.error, input.state);
     let llmCallsAvoided = 0;
+    this.events?.emit("recovery", {
+      goal: input.goal,
+      problem,
+      error: input.error,
+      domain: input.state.domain,
+    });
 
     const remembered = await this.experiences.findBest({
       site: input.state.domain,
@@ -274,6 +296,12 @@ export class PlanRunner {
       if (candidate.experienceId) {
         this.experiences.markResult(candidate.experienceId, true);
         llmCallsAvoided += 1;
+        this.events?.emit("recovery", {
+          goal: input.goal,
+          problem,
+          recovered: true,
+          experienceId: candidate.experienceId,
+        });
         return {
           recovered: true,
           llmCallsAvoided,
@@ -292,9 +320,20 @@ export class PlanRunner {
         signals: input.state.signals,
       });
       llmCallsAvoided += 1;
+      this.events?.emit("recovery", {
+        goal: input.goal,
+        problem,
+        recovered: true,
+        experienceId: saved.id,
+      });
       return { recovered: true, llmCallsAvoided, experienceId: saved.id };
     }
 
+    this.events?.emit("recovery", {
+      goal: input.goal,
+      problem,
+      recovered: false,
+    });
     return { recovered: false, llmCallsAvoided };
   }
 }

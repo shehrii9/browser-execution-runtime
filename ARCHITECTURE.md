@@ -53,17 +53,18 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the ag
 | Dynamic page settle (SPA/AJAX) | Done (`settlePage`, wait.settle, post navigate/click) |
 | YouTube-like handling | Done (plugin + watch/results hints + skip-ad recovery) |
 | One-command startup | Done (`npm start`) |
-| Event bus | Not yet |
+| Event bus | Done (`EventBus`, `GET /events`, SSE `/events/stream`) |
 | Chrome extension bridge | Done (attach-only debug extension) |
 | Optional neural embeddings | Done (`NeuralEmbedder`, hash fallback) |
 | Rust core | Not yet (intentionally later) |
-| Python SDK | Partial (HTTP client MVP; not full parity with daemon) |
+| Python SDK | Done (HTTP client parity with daemon: diff/act/tabs/events/policy/…) |
 | Full Hermes LLM planner adapter | Done as generic `LlmPlanner` (OpenAI-compatible, key optional) |
 | Hermes tool bridge/client | Done as generic `ToolBridge` / `AGENT_TOOLS` |
 | Computer-use fallback (vision+text) | Done (`VisionComputerUseFallback` cascade) |
 | Experience replay benchmark | Done (`npm run bench:replay`) |
 | Provider-agnostic / no required API key | Done |
 | Plugin workflows wired into planner | Done (`run <workflow> on <domain>`, YouTube open/search) |
+| Iframe-aware targets | Done (`target.frame` / `target.frameUrl` + same-origin observe) |
 
 ---
 
@@ -74,7 +75,9 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the ag
 - Plans can use `{ "type": "wait", "settle": true }` or `networkIdle: true`.
 - Observe walks **open shadow roots** and includes headings/video nodes.
 - Expect failures get one settle + recovery retry (not instant fail).
-- Still no MutationObserver stream / iframe frame-locator / closed-shadow piercing.
+- Targets can scope into iframes via `frame` / `frameUrl`.
+- Same-origin iframe contents are included in observe when reachable.
+- Still no MutationObserver stream / closed-shadow piercing / cross-origin iframe DOM.
 
 **YouTube-like sites**
 - `youtube` plugin: consent, skip-ad, player wait, home/search/watch workflows.

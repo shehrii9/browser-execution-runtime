@@ -191,6 +191,7 @@ Register the exported tools in your agent, then prefer them over computer-use:
 | `browser_resume` | Resume last failed run |
 | `browser_status` | Runtime + memory status |
 | `browser_tabs` | List tabs |
+| `browser_events` | Recent step/recovery/run events |
 
 JS example:
 
@@ -244,6 +245,8 @@ Base URL: `http://127.0.0.1:8787`
 | `GET` | `/plugins` | Loaded plugins |
 | `GET` | `/experiences` | Stored experiences |
 | `GET` | `/metrics` | Run metrics |
+| `GET` | `/events` | Recent runtime events (`afterId`, `limit`, `type`) |
+| `GET` | `/events/stream` | Server-Sent Events stream of runtime events |
 | `GET` | `/extension/info` | Debug extension metadata |
 | `POST` | `/attach` | Launch/attach browser |
 | `POST` | `/run` | Execute plan |

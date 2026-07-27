@@ -62,6 +62,12 @@ export class ToolBridge {
         return this.client.status();
       case "browser_tabs":
         return this.client.tabs();
+      case "browser_events":
+        return this.client.events({
+          afterId: typeof args.afterId === "number" ? args.afterId : undefined,
+          limit: typeof args.limit === "number" ? args.limit : undefined,
+          type: asString(args.type),
+        });
       default:
         throw new Error(`Unknown browser tool: ${call.name}`);
     }

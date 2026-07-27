@@ -124,6 +124,29 @@
           "properties": {}
         }
       }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "browser_events",
+        "description": "List recent runtime events (attach, steps, recovery, run_start/end). Useful instead of screenshots.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "afterId": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "type": {
+              "type": "string"
+            }
+          }
+        }
+      }
     }
   ]
 }

@@ -85,7 +85,7 @@ const COLLECT_NODES_SCRIPT = `(() => {
   const nodes = [];
   const seen = new Set();
   const selector =
-    "a, button, input, textarea, select, [role], dialog, [aria-modal='true'], h1, h2, h3, video";
+    "a, button, input, textarea, select, [role], dialog, [aria-modal='true'], h1, h2, h3, video, iframe";
 
   const visit = (root) => {
     let elements;
@@ -105,7 +105,7 @@ const COLLECT_NODES_SCRIPT = `(() => {
       const tag = el.tagName.toLowerCase();
       if (
         !interestingRoles.has(role) &&
-        !["button", "a", "input", "textarea", "select", "dialog", "video"].includes(
+        !["button", "a", "input", "textarea", "select", "dialog", "video", "iframe"].includes(
           tag,
         ) &&
         !/^h[1-6]$/.test(tag)
@@ -114,18 +114,29 @@ const COLLECT_NODES_SCRIPT = `(() => {
         continue;
       }
       nodes.push({
-        role: tag === "video" ? "video" : role,
-        name: nameOf(el) || (tag === "video" ? "video" : ""),
+        role: tag === "video" ? "video" : tag === "iframe" ? "iframe" : role,
+        name:
+          nameOf(el) ||
+          (tag === "video" ? "video" : tag === "iframe" ? el.getAttribute("title") || el.getAttribute("name") || "iframe" : ""),
         text: (el.innerText || "").replace(/\\s+/g, " ").trim().slice(0, 80),
         placeholder: el.getAttribute("placeholder") || "",
         value: typeof el.value === "string" ? el.value.slice(0, 80) : "",
         enabled: !el.disabled,
         visible: true,
         checked: typeof el.checked === "boolean" ? el.checked : null,
-        href: el.href || "",
+        href: el.href || el.src || "",
         tag,
       });
       if (el.shadowRoot) visit(el.shadowRoot);
+      // Same-origin iframe content (cookie CMPs often use this).
+      if (tag === "iframe") {
+        try {
+          const doc = el.contentDocument;
+          if (doc) visit(doc);
+        } catch {
+          // cross-origin — skip
+        }
+      }
       if (nodes.length >= 160) return;
     }
     // Also walk open shadow roots of any custom elements on this root.

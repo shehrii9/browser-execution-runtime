@@ -11,6 +11,7 @@ export const TOOL_HTTP_ROUTES = {
   browser_resume: { method: "POST", path: "/resume" },
   browser_status: { method: "GET", path: "/status" },
   browser_tabs: { method: "GET", path: "/tabs" },
+  browser_events: { method: "GET", path: "/events" },
 } as const;
 
 export type RoutedToolName = keyof typeof TOOL_HTTP_ROUTES;
