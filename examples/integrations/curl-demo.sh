@@ -18,3 +18,7 @@ curl -s -X POST "$BASE/run" \
   -H 'content-type: application/json' \
   -d '{"plan":{"goal":"open example","steps":[{"action":{"type":"navigate","url":"https://example.com"}},{"action":{"type":"extract","target":{"role":"heading","name":"Example Domain"},"key":"heading"}}]}}'
 echo
+
+echo "== diff (after run) =="
+curl -s "$BASE/diff" | head -c 500
+echo

@@ -62,4 +62,10 @@ This project follows the [Contributor Covenant](./CODE_OF_CONDUCT.md). Please re
 
 ## Questions
 
-Open a [GitHub Discussion](https://github.com/shehrii9/browser-execution-runtime/discussions) or an issue with the **question** label if discussions are enabled; otherwise use a generic issue and we will triage.
+Open a [GitHub Discussion](https://github.com/shehrii9/browser-execution-runtime/discussions) (Q&A) or an issue. FAQ draft for moderators: [`docs/DISCUSSIONS_FAQ.md`](./docs/DISCUSSIONS_FAQ.md).
+
+## Roadmap and starter tasks
+
+- [`ROADMAP.md`](./ROADMAP.md) — priorities and deferred scope
+- [`GOOD_FIRST_ISSUES.md`](./GOOD_FIRST_ISSUES.md) — curated tasks (linked to GitHub labels)
+- [`docs/COMPARISON.md`](./docs/COMPARISON.md) — BER vs computer-use loops

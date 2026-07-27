@@ -17,6 +17,16 @@ npm run doctor
 
 Confirm `npm pack --dry-run` includes `dist/`, `examples/`, `scripts/`, `sdk/python/`, and docs — not `node_modules/` or `data/`.
 
+## Release notes
+
+When tagging a release, copy [`.github/RELEASE_NOTES_TEMPLATE.md`](./.github/RELEASE_NOTES_TEMPLATE.md) into the GitHub Release description.
+
+After the first npm publish, add this badge to the README:
+
+```markdown
+[![npm version](https://img.shields.io/npm/v/browser-execution-runtime.svg)](https://www.npmjs.com/package/browser-execution-runtime)
+```
+
 ## Automated release (recommended)
 
 1. Add GitHub repo secrets:
