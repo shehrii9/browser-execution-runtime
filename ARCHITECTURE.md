@@ -66,7 +66,7 @@ Current stack:
 | Full Hermes LLM planner adapter | Done as generic `LlmPlanner` (OpenAI-compatible, key optional) |
 | Hermes tool bridge/client | Done as generic `ToolBridge` / `AGENT_TOOLS` |
 | Computer-use fallback (vision+text) | Done (`VisionComputerUseFallback` cascade) |
-| Experience replay benchmark | Done (`npm run bench:replay`) |
+| Experience replay benchmark | Done (`npm run bench:replay` — cookie, login, scroll, media scenarios) |
 | Provider-agnostic / no required API key | Done |
 | Plugin workflows wired into planner | Done (`run <workflow> on <domain>`, media open/search/ready_player) |
 | Iframe-aware targets | Done (`frame` / `frameUrl` / `frameName` / `frameIndex`; observe walks frame tree) |
