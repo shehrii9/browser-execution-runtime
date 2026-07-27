@@ -246,4 +246,36 @@ describe.sequential("browser smoke (Playwright)", () => {
     },
     60_000,
   );
+
+  it(
+    "dom-mutate fixture: emits dom_change on SSE bus after SPA injection",
+    async () => {
+      const server = await startFixtureServer({ "/": "dom-mutate.html" });
+      const runtime = new BrowserRuntime({
+        dataDir: tempDataDir(),
+        policy: { headless: smokeHeadless() },
+      });
+
+      try {
+        await runtime.attach({ startUrl: server.url("/") });
+        const deadline = Date.now() + 5000;
+        let domChange: { mutations?: number } | undefined;
+        while (Date.now() < deadline) {
+          const hit = runtime
+            .listEvents({ type: "dom_change" })
+            .find((e) => (e.data?.mutations as number) > 0);
+          if (hit) {
+            domChange = hit.data;
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 100));
+        }
+        expect(domChange?.mutations).toBeGreaterThan(0);
+      } finally {
+        await runtime.close();
+        await server.close();
+      }
+    },
+    30_000,
+  );
 });
