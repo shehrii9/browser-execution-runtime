@@ -1,7 +1,9 @@
 import type { Page } from "playwright";
 import { settlePage } from "../browser/settle.js";
 import { assertNavigationAllowed, looksLikePurchaseIntent } from "../policy.js";
+import { shouldAttemptDismissOverlays } from "../recovery/engine.js";
 import { SelectorEngine } from "../selectors/engine.js";
+import { observePage } from "../state/observe.js";
 import type { Action, Policy } from "../types.js";
 
 export interface ActionExecutionResult {
@@ -206,6 +208,11 @@ export class ActionExecutor {
 }
 
 async function dismissCommonOverlays(page: Page): Promise<void> {
+  const state = await observePage(page);
+  if (!shouldAttemptDismissOverlays(state)) {
+    return;
+  }
+
   const names = [
     /accept all/i,
     /accept/i,

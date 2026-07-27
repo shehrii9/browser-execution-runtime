@@ -87,6 +87,21 @@ Current stack:
 - Closed shadow: observe merges CDP-pierced interactive nodes (`shadow_pierced` signal). Still imperfect for canvas-only UIs.
 - Still no MutationObserver push stream.
 
+**Dialogs & modals (DOM + native)**
+
+Two layers:
+
+| Layer | Examples | Runtime behavior |
+|-------|----------|------------------|
+| **Native JS** | `alert`, `confirm`, `prompt`, `beforeunload` | `autoDismissDialogs` (default on). `confirm` on pay/delete/logout text is **dismissed** unless `autoDismissNativeConfirm: true`. OTP-style `prompt` uses `dialogPromptDefault` or dismiss. |
+| **DOM modals** | Cookie CMP, login, OTP, checkout, newsletter | `observe` emits `modal:<kind>` signals: `cookie`, `login`, `otp`, `payment`, `newsletter`, `critical`, `generic`. |
+
+Recovery policy:
+
+- **Auto-dismiss safe modals** — cookie, newsletter, generic marketing (`dismiss_overlays`).
+- **Protected modals** — login, OTP, payment, `alertdialog`: recovery **does not** click Accept/Close; classifies `auth_required` / `otp_required` / `payment_confirm` so the **agent** must `type` credentials, OTP, or explicit confirm steps.
+- **Popups** — `window.open` / `_blank`: `autoFocusPopupTabs` (default on) switches the active tab.
+
 **Rust core (experimental)**
 - Crate: `crates/ber-core` — fingerprint + hashing embeddings + `ber-core` CLI
 - TypeScript remains the execution kernel; set `BER_RUST_CORE=1` to try Rust fingerprints when the binary is on `PATH`

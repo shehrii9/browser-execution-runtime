@@ -148,6 +148,14 @@ export const PolicySchema = z.object({
   maxRecoveries: z.number().int().nonnegative().default(3),
   headless: z.boolean().default(true),
   experienceAutoApplyMinConfidence: z.number().min(0).max(1).default(0.8),
+  /** Auto-accept alert/confirm/prompt so actions do not hang. */
+  autoDismissDialogs: z.boolean().default(true),
+  /** Switch active tab when window.open / target=_blank creates a page. */
+  autoFocusPopupTabs: z.boolean().default(true),
+  /** Default text for prompt() when auto-dismiss is on (e.g. OTP from agent env). */
+  dialogPromptDefault: z.string().default(""),
+  /** When false, confirm() on payment/delete/logout-style text is dismissed, not accepted. */
+  autoDismissNativeConfirm: z.boolean().default(false),
 });
 
 export type Policy = z.infer<typeof PolicySchema>;
