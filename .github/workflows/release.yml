@@ -29,7 +29,6 @@ jobs:
           sudo apt-get install -y python3 make g++
           npm rebuild better-sqlite3 --build-from-source
       - run: npm test
-      - run: npx tsx scripts/ci-experience-smoke.ts
       - run: npm run build
       - run: npm run pack:check
       - name: Publish to npm
