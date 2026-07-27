@@ -38,7 +38,7 @@
     "hermes-tools": "tsx src/cli.ts tools",
     "bench:replay": "tsx benchmarks/experience-replay.ts",
     "test": "vitest run",
-    "test:browser": "vitest run tests/browser-smoke.test.ts",
+    "test:browser": "vitest run --config vitest.browser.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "pack:check": "npm pack --dry-run",
     "rust:test": "cargo test -p ber-core",
