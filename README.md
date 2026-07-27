@@ -488,7 +488,8 @@ browser-execution-runtime/
 ```bash
 npm install
 npx playwright install chromium
-npm test
+npm test              # unit tests (no browser)
+npm run test:browser  # Playwright smoke (example.com + fixtures)
 npm run typecheck
 npm run build
 npm run bench:replay
