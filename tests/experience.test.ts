@@ -12,7 +12,7 @@ afterEach(() => {
   }
 });
 
-describe.skipIf(!!process.env.CI)("ExperienceStore", () => {
+describe("ExperienceStore", () => {
   it("remembers and retrieves high-confidence fixes", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ber-exp-"));
     const store = new ExperienceStore(join(dir, "experiences.db"));
