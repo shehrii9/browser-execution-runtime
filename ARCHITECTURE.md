@@ -21,9 +21,9 @@ We are **not** dumping full DOM/HTML/chat history into JSON files.
 Current stack:
 - **TypeScript** runtime
 - **SQLite** via `better-sqlite3`
-- L3 vector index **not implemented yet**
+- L3 similarity via hashing embeddings (optional neural) stored beside experiences
 
-Rust was in the ChatGPT long-term vision. We deferred it on purpose until the Hermes loop proves value.
+Rust was in the ChatGPT long-term vision. We deferred it on purpose until the agent loop proves value.
 
 ---
 
@@ -46,19 +46,41 @@ Rust was in the ChatGPT long-term vision. We deferred it on purpose until the He
 | Telemetry basics | Done |
 | Failure screenshots | Done |
 | Resume failed run | Done |
-| Computer-use fallback hook | Done (noop by default) |
+| Computer-use fallback hook | Done (noop by default; vision/LLM when configured) |
 | Vector similarity (L3) | Done (local hashing embeddings + cosine in SQLite) |
-| Site plugins | Done (cookie/auth/github/google/amazon) |
+| Site plugins | Done (cookie/auth/github/google/amazon/youtube) |
 | Multi-tab | Done (new/switch/close tab actions + API) |
+| Dynamic page settle (SPA/AJAX) | Done (`settlePage`, wait.settle, post navigate/click) |
+| YouTube-like handling | Done (plugin + watch/results hints + skip-ad recovery) |
+| One-command startup | Done (`npm start`) |
 | Event bus | Not yet |
 | Chrome extension bridge | Done (attach-only debug extension) |
 | Optional neural embeddings | Done (`NeuralEmbedder`, hash fallback) |
-| Rust core / Python SDK | Not yet (intentionally later) |
+| Rust core | Not yet (intentionally later) |
+| Python SDK | Partial (HTTP client MVP; not full parity with daemon) |
 | Full Hermes LLM planner adapter | Done as generic `LlmPlanner` (OpenAI-compatible, key optional) |
 | Hermes tool bridge/client | Done as generic `ToolBridge` / `AGENT_TOOLS` |
 | Computer-use fallback (vision+text) | Done (`VisionComputerUseFallback` cascade) |
 | Experience replay benchmark | Done (`npm run bench:replay`) |
 | Provider-agnostic / no required API key | Done |
+| Plugin workflows wired into planner | Done (`run <workflow> on <domain>`, YouTube open/search) |
+
+---
+
+## Dynamic pages & YouTube (current behavior)
+
+**Dynamic / SPA pages**
+- After `navigate` / `click`, runtime waits for a short DOM-stable window (`settlePage`).
+- Plans can use `{ "type": "wait", "settle": true }` or `networkIdle: true`.
+- Observe walks **open shadow roots** and includes headings/video nodes.
+- Expect failures get one settle + recovery retry (not instant fail).
+- Still no MutationObserver stream / iframe frame-locator / closed-shadow piercing.
+
+**YouTube-like sites**
+- `youtube` plugin: consent, skip-ad, player wait, home/search/watch workflows.
+- Page hints: `watch`, `results`, `shorts`, `home`, `video_site`.
+- Signals: `video_player`, `skip_ad`.
+- Limits: no DRM scrubbing, closed shadow / canvas controls may stay invisible; login walls need the user/agent.
 
 ---
 

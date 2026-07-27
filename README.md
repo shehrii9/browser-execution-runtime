@@ -56,11 +56,13 @@ This project is a **local execution wrapper**:
 - **Self-healing recovery** — cookie banners, overlays, retries
 - **Experience memory** — SQLite store of problem → fix (+ confidence)
 - **L3 similarity** — local hashing embeddings by default; optional neural `/embeddings`
-- **Site plugins** — `cookie-consent`, `auth-modal`, `github`, `google`, `amazon`
+- **Site plugins** — `cookie-consent`, `auth-modal`, `github`, `google`, `amazon`, `youtube`
+- **Dynamic settle** — waits for SPA/DOM quiet after navigate/click; `wait.settle`
 - **Open tool bridge** — OpenAI-style `browser_*` tools any agent can register
 - **Optional LLM planner** — any OpenAI-compatible endpoint; key optional
 - **Debug Chrome extension** — attach-only bridge (no AI inside)
 - **Safety policy** — domain allowlist, purchase blocking
+- **One-command start** — `npm start` (setup + daemon)
 
 ---
 
@@ -74,14 +76,14 @@ This project is a **local execution wrapper**:
 
 ## Quick start
 
+One command (installs Chromium if needed, writes config once, starts the daemon):
+
 ```bash
 npm install
-npx playwright install chromium
-npm test
-npm run init-config
-npm run doctor
-npm run daemon
+npm start
 ```
+
+That is all for first startup. The engine listens on `http://127.0.0.1:8787`.
 
 In another terminal:
 
@@ -92,6 +94,12 @@ npm run dev -- run-plan examples/sample-plan.json
 # or call the daemon
 curl -s http://127.0.0.1:8787/health
 bash examples/integrations/curl-demo.sh
+```
+
+Setup only (no daemon):
+
+```bash
+npm run setup
 ```
 
 ### Python client
@@ -202,7 +210,9 @@ npm run dev -- call browser_observe '{}'
 ## CLI
 
 ```bash
-npm run daemon                 # start HTTP daemon (:8787)
+npm start                      # ONE command: setup + start daemon (:8787)
+npm run setup                  # setup only (no daemon)
+npm run daemon                 # daemon only (after setup)
 npm run doctor                 # show resolved config / planner mode
 npm run init-config            # write ber.config.json
 npm run tools                  # print OpenAI-style tool schemas
@@ -212,6 +222,7 @@ npm run dev -- observe https://example.com
 npm run dev -- execute "open https://example.com"
 npm run dev -- run-plan examples/sample-plan.json
 npm run dev -- run-plan examples/multi-tab-plan.json
+npm run dev -- run-plan examples/youtube-search-plan.json
 npm run dev -- call <tool> '<json>'
 ```
 

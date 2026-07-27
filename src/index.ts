@@ -14,6 +14,8 @@ export {
   createEmbedderFromEnv,
 } from "./memory/embedder.js";
 export { PluginRegistry, DEFAULT_PLUGINS } from "./plugins/registry.js";
+export { youtubePlugin } from "./plugins/youtube.js";
+export { settlePage } from "./browser/settle.js";
 export { cookieConsentPlugin } from "./plugins/cookieConsent.js";
 export { githubPlugin } from "./plugins/github.js";
 export { googlePlugin } from "./plugins/google.js";

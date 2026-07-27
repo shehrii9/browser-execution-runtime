@@ -79,11 +79,41 @@ export class PlanRunner {
           currentState,
         );
         if (!expectOk) {
-          result = {
-            ok: false,
+          // Late SPA updates often fail the first expect — settle + one recovery pass.
+          await this.tabs.getPage().waitForTimeout(400).catch(() => undefined);
+          const recovery = await this.recover({
+            executor,
+            goal: plan.goal,
             error: `Expectation failed after action ${step.action.type}`,
-            extracted: result.extracted,
-          };
+            state: currentState,
+          });
+          llmCallsAvoided += recovery.llmCallsAvoided;
+          metrics.addLlmCallsAvoided(recovery.llmCallsAvoided);
+          if (recovery.recovered) {
+            recovered = true;
+            experienceApplied = recovery.experienceId;
+            currentState = await observePage(this.tabs.getPage());
+            const retryExpect = await this.checkExpect(
+              step.expect,
+              new SelectorEngine(this.tabs.getPage()),
+              currentState,
+            );
+            if (retryExpect) {
+              result = { ok: true, extracted: result.extracted };
+            } else {
+              result = {
+                ok: false,
+                error: `Expectation failed after action ${step.action.type}`,
+                extracted: result.extracted,
+              };
+            }
+          } else {
+            result = {
+              ok: false,
+              error: `Expectation failed after action ${step.action.type}`,
+              extracted: result.extracted,
+            };
+          }
         }
       }
 

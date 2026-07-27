@@ -25,9 +25,10 @@
     }
   },
   "scripts": {
+    "start": "node scripts/setup.mjs",
+    "setup": "node scripts/setup.mjs --setup-only",
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
-    "start": "node dist/cli.js",
     "daemon": "tsx src/cli.ts daemon",
     "doctor": "tsx src/cli.ts doctor",
     "init-config": "tsx src/cli.ts init-config",

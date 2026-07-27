@@ -26,8 +26,8 @@ Return ONLY valid JSON matching this schema:
         | {"type":"click","target": Target}
         | {"type":"type","target": Target,"text":string,"clear"?:boolean,"pressEnter"?:boolean}
         | {"type":"select","target": Target,"value":string}
-        | {"type":"wait","ms"?:number,"urlIncludes"?:string,"text"?:string,"target"?: Target}
-        | {"type":"scroll","direction"?: "up"|"down","amount"?: number}
+        | {"type":"wait","ms"?:number,"urlIncludes"?:string,"text"?:string,"target"?: Target,"settle"?:boolean,"networkIdle"?:boolean,"timeoutMs"?:number}
+        | {"type":"scroll","direction"?: "up"|"down","amount"?: number,"settle"?:boolean}
         | {"type":"extract","target"?: Target,"attribute"?:string,"key"?:string}
         | {"type":"press","key":string}
         | {"type":"dismiss_overlays"}
@@ -45,6 +45,7 @@ Rules:
 - Prefer role/name/text targets over brittle CSS.
 - Plan once with enough steps; do not narrate.
 - Include dismiss_overlays after navigations when popups are likely.
+- On SPAs / YouTube-like sites, use {"type":"wait","settle":true} after navigate/click.
 - Never include payment/purchase confirmation unless explicitly required.
 - Output JSON only. No markdown.`;
 
