@@ -5,12 +5,8 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
     exclude: ["tests/browser-smoke.test.ts"],
-    pool: "forks",
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    pool: "threads",
+    maxWorkers: 1,
     fileParallelism: false,
   },
 });
