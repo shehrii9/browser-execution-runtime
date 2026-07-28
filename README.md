@@ -65,7 +65,7 @@ This project is a **local execution wrapper**:
 - **Cross-origin frames** — `frameUrl` / `frameName` / `frameIndex` via Playwright frame tree
 - **Closed-shadow pierce** — CDP pierce during observe (`BER_PIERCE_SHADOW=0` to disable)
 - **Rust core (experimental)** — `crates/ber-core` fingerprint/embed CLI
-- **Event bus** — step/recovery/run events via `GET /events` or SSE stream
+- **Event bus** — step/recovery/run events via `GET /events` or SSE stream; live `dom_change` bursts from MutationObserver
 - **Iframe targets** — `frame` / `frameUrl` for consent CMPs and nested UI
 - **Open tool bridge** — OpenAI-style `browser_*` tools any agent can register
 - **Optional LLM planner** — any OpenAI-compatible endpoint; key optional
@@ -376,6 +376,8 @@ See [`examples/ber.config.example.json`](./examples/ber.config.example.json).
 | `BER_EMBEDDINGS_API_BASE` | no | Optional neural embeddings endpoint |
 | `BER_EMBEDDINGS_MODEL` | no | Embeddings model id |
 | `BER_EMBEDDINGS=hash` | no | Force local hashing embeddings |
+| `BER_DOM_WATCH=0` | no | Disable live MutationObserver `dom_change` events |
+| `BER_DOM_WATCH_DEBOUNCE_MS` | no | Node-side debounce for `dom_change` (default `400`) |
 | `BER_HERMES_*` | no | Legacy aliases |
 
 ---

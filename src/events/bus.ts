@@ -2,6 +2,7 @@ export type RuntimeEventType =
   | "attached"
   | "detached"
   | "observe"
+  | "dom_change"
   | "run_start"
   | "run_end"
   | "step_start"

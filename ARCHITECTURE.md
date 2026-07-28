@@ -56,7 +56,7 @@ Current stack:
 | Media actions | Done (`media` play/pause/mute/skip_ad/fullscreen for video+audio) |
 | Content/article sites | Done (`content-sites` plugin + `article` page hint) |
 | One-command startup | Done (`npm start`) |
-| Event bus | Done (`EventBus`, `GET /events`, SSE `/events/stream`) |
+| Event bus | Done (`EventBus`, `GET /events`, SSE `/events/stream`, `dom_change` from MutationObserver) |
 | Chrome extension bridge | Done (attach-only debug extension) |
 | Optional neural embeddings | Done (`NeuralEmbedder`, hash fallback) |
 | Rust core | Scaffolded (`crates/ber-core`: fingerprint + hashing embed + CLI; TS still default) |
@@ -85,7 +85,7 @@ Current stack:
 - Targets can scope into iframes via `frame` / `frameUrl` / `frameName` / `frameIndex`.
 - Prefer role/name targets: Playwright a11y locators often reach into shadow UI better than CSS.
 - Closed shadow: observe merges CDP-pierced interactive nodes (`shadow_pierced` signal). Still imperfect for canvas-only UIs.
-- Still no MutationObserver push stream.
+- **Live DOM push:** in-page `MutationObserver` emits debounced `dom_change` events on the bus (`GET /events`, SSE `/events/stream`). Disable with `BER_DOM_WATCH=0`. Follow with `browser_diff` / `GET /diff` for semantic deltas.
 
 **Dialogs & modals (DOM + native)**
 

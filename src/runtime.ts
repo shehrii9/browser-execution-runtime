@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import { DomMutationWatcher } from "./browser/domWatcher.js";
 import { BrowserSession, type AttachOptions } from "./browser/session.js";
 import { EventBus } from "./events/bus.js";
 import { ExperienceStore } from "./experience/store.js";
@@ -49,6 +50,7 @@ export class BrowserRuntime {
   private readonly plugins: PluginRegistry;
   private readonly dataDir: string;
   readonly events: EventBus;
+  private readonly domWatcher: DomMutationWatcher;
   private lastPlan?: Plan;
   private lastResult?: RunResult;
 
@@ -65,12 +67,31 @@ export class BrowserRuntime {
       options.computerUseFallback ?? new NoopComputerUseFallback();
     this.plugins = options.plugins ?? new PluginRegistry();
     this.events = options.events ?? new EventBus();
+    this.domWatcher = new DomMutationWatcher((batch) => {
+      this.events.emit("dom_change", {
+        url: batch.url,
+        mutations: batch.mutations,
+        addedNodes: batch.addedNodes,
+        removedNodes: batch.removedNodes,
+        attributeChanges: batch.attributeChanges,
+        observedAt: batch.timestamp,
+      });
+    });
+  }
+
+  private async syncDomWatcher(): Promise<void> {
+    if (!this.session.isAttached()) {
+      await this.domWatcher.unwatch();
+      return;
+    }
+    await this.domWatcher.watch(this.session.getPage());
   }
 
   async attach(options: AttachOptions = {}): Promise<SemanticState> {
     await this.session.attach(options);
     const state = await observePage(this.session.getPage());
     this.sessionMemory.setState(state);
+    await this.syncDomWatcher();
     this.events.emit("attached", {
       url: state.url,
       domain: state.domain,
@@ -122,6 +143,7 @@ export class BrowserRuntime {
     this.ensureAttached();
     const tab = await this.session.newTab(url);
     await this.observe();
+    await this.syncDomWatcher();
     return tab;
   }
 
@@ -129,6 +151,7 @@ export class BrowserRuntime {
     this.ensureAttached();
     const tab = await this.session.switchTab(index);
     await this.observe();
+    await this.syncDomWatcher();
     return tab;
   }
 
@@ -136,6 +159,7 @@ export class BrowserRuntime {
     this.ensureAttached();
     const tabs = await this.session.closeTab(index);
     await this.observe();
+    await this.syncDomWatcher();
     return tabs;
   }
 
@@ -296,6 +320,7 @@ export class BrowserRuntime {
   }
 
   async close(): Promise<void> {
+    await this.domWatcher.unwatch();
     this.events.emit("detached", {});
     await this.session.close();
     this.experiences.close();
