@@ -5,7 +5,7 @@
       "id": "go",
       "action": {
         "type": "navigate",
-        "url": "https://vimeo.com",
+        "url": "https://www.youtube.com",
         "waitUntil": "domcontentloaded"
       }
     },
@@ -23,7 +23,7 @@
       "action": {
         "type": "type",
         "target": {
-          "css": "input#search, input[name='search_query'], input[type='search'], input[placeholder*='Search' i]"
+          "css": "input#search, input[name='search_query']"
         },
         "text": "browser automation",
         "pressEnter": true

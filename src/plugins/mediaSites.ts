@@ -1,3 +1,4 @@
+import { MEDIA_PLAYER_TARGET_CSS } from "../browser/mediaPlayer.js";
 import type { SitePlugin } from "./types.js";
 
 /**
@@ -38,8 +39,7 @@ export const MEDIA_SITE_DOMAINS = [
   "spotify.com",
 ] as const;
 
-const PLAYER_CSS =
-  "video, audio, .video-js, .html5-video-player, [class*='player'], [data-player], iframe[src*='player'], iframe[src*='video']";
+const PLAYER_CSS = MEDIA_PLAYER_TARGET_CSS;
 
 const FEED_ITEM_CSS =
   "article, [data-testid*='video'], [class*='video-item'], [class*='VideoCard'], ytd-video-renderer, ytd-rich-item-renderer, .tw-tower > *, .QueueItem";

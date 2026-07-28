@@ -1,4 +1,9 @@
 import type { Page } from "playwright";
+import {
+  isLegacyBroadPlayerCss,
+  MEDIA_PLAYER_TARGET_CSS,
+  waitForPlayableMedia,
+} from "../browser/mediaPlayer.js";
 import { settlePage } from "../browser/settle.js";
 import { assertNavigationAllowed, looksLikePurchaseIntent } from "../policy.js";
 import { shouldAttemptDismissOverlays } from "../recovery/engine.js";
@@ -90,10 +95,20 @@ export class ActionExecutor {
             });
           }
           if (action.target) {
-            await this.selectors.locate(action.target).waitFor({
-              state: "visible",
-              timeout,
-            });
+            const css = action.target.css;
+            if (
+              css &&
+              (css === MEDIA_PLAYER_TARGET_CSS ||
+                isLegacyBroadPlayerCss(css) ||
+                /^video\s*,/.test(css.trim()))
+            ) {
+              await waitForPlayableMedia(this.page, timeout);
+            } else {
+              await this.selectors.locate(action.target).waitFor({
+                state: "visible",
+                timeout,
+              });
+            }
           }
           if (action.settle || action.networkIdle) {
             await settlePage(this.page, {
