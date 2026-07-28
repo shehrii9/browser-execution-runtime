@@ -50,6 +50,8 @@ cargo test -p ber-core
 
 ## Pull request guidelines
 
+`main` should stay **protected**: open a PR from your branch and wait for CI (**test** + **rust**) to pass. Maintainers: see [`docs/BRANCH_PROTECTION.md`](./docs/BRANCH_PROTECTION.md).
+
 - **Scope**: One logical change per PR when possible.
 - **Tests**: Add or update tests when behavior changes. Prefer unit tests; use browser tests for CDP/Playwright behavior.
 - **Style**: Match surrounding TypeScript (no drive-by refactors).

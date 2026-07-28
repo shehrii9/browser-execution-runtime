@@ -2,6 +2,17 @@
 
 The cloud agent token cannot change some repository settings (403). Run these locally with `gh` or in the GitHub UI.
 
+## Protect `main` (GitHub banner)
+
+When GitHub asks you to **protect main**, use **[`BRANCH_PROTECTION.md`](./BRANCH_PROTECTION.md)** (UI steps) or run:
+
+```bash
+chmod +x scripts/github-protect-main.sh
+./scripts/github-protect-main.sh
+```
+
+Require status checks **test** and **rust** from the CI workflow.
+
 ## Repository About
 
 - **Description:** Open provider-agnostic browser execution runtime for AI agents — plan once, execute many, no API key required.
