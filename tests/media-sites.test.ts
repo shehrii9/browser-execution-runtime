@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import {
+  isLegacyBroadPlayerCss,
+  MEDIA_PLAYER_TARGET_CSS,
+} from "../src/browser/mediaPlayer.js";
 import { BuiltinPlanner } from "../src/planner/engine.js";
 import { PluginRegistry } from "../src/plugins/registry.js";
 import { mediaSitesPlugin } from "../src/plugins/mediaSites.js";
@@ -6,6 +10,11 @@ import { isMediaHost, pageHintFromUrl } from "../src/state/fingerprint.js";
 import { ActionSchema } from "../src/types.js";
 
 describe("media sites + dynamic settle", () => {
+  it("uses safe media player selectors (no script[class*=player] trap)", () => {
+    expect(isLegacyBroadPlayerCss("[class*='player']")).toBe(true);
+    expect(MEDIA_PLAYER_TARGET_CSS).not.toMatch(/class\*='player'/i);
+  });
+
   it("detects media page hints across hosts", () => {
     expect(pageHintFromUrl("https://www.youtube.com/watch?v=abc", "Video")).toBe(
       "watch",
